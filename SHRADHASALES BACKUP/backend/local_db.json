@@ -1,0 +1,274 @@
+{
+  "users": [
+    {
+      "id": "e42eb34d-8880-42cf-ba23-646162c614d0",
+      "email": "admin@shraddhasales.com",
+      "name": "Admin",
+      "password_hash": "$2b$12$xUm8bE8VAT.TyCqp062z0O5Z6Qe5DbEDGZDINckEpgzOvkKryJldC",
+      "role": "admin",
+      "created_at": "2026-07-07T03:33:22.529006+00:00"
+    },
+    {
+      "id": "d9e5e52e-fd9d-4439-8e41-86d040f2a775",
+      "email": "customer@test.com",
+      "name": "Test Customer",
+      "password_hash": "$2b$12$Kywny7mJdKAqlfd/Amkjqu8jb.6ii4Zy4Nl7bPEKQRROjvEihSVGK",
+      "role": "customer",
+      "created_at": "2026-07-07T03:33:22.859895+00:00"
+    }
+  ],
+  "categories": [
+    {
+      "name": "Refrigerators",
+      "image": "https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=600&q=80",
+      "description": "Single & double door refrigerators",
+      "id": "f220dbf2-ac8a-464e-981c-aa3375221c50",
+      "slug": "refrigerators",
+      "visible": true,
+      "order": 0,
+      "created_at": "2026-07-07T03:33:22.860856+00:00"
+    },
+    {
+      "name": "Deep Freezers",
+      "image": "https://images.unsplash.com/photo-1613083042976-463bdde9ec51?w=600&q=80",
+      "description": "Hard-top & glass-top deep freezers",
+      "id": "21227bc2-2e76-4450-b7c4-5957ba9c01c0",
+      "slug": "deep-freezers",
+      "visible": true,
+      "order": 1,
+      "created_at": "2026-07-07T03:33:22.861620+00:00"
+    },
+    {
+      "name": "Air Conditioners",
+      "image": "https://images.unsplash.com/photo-1759262151046-b91fa96e4006?w=600&q=80",
+      "description": "Split, window & cassette ACs",
+      "id": "3a35f44f-83e4-44bf-aaa7-01222e45f6af",
+      "slug": "air-conditioners",
+      "visible": true,
+      "order": 2,
+      "created_at": "2026-07-07T03:33:22.862486+00:00"
+    },
+    {
+      "name": "Water Coolers",
+      "image": "https://images.unsplash.com/photo-1622398925373-3f91b1e275f5?w=600&q=80",
+      "description": "Commercial water coolers",
+      "id": "30a078c4-211d-4498-ad0d-85c8b4e43b2e",
+      "slug": "water-coolers",
+      "visible": true,
+      "order": 3,
+      "created_at": "2026-07-07T03:33:22.863528+00:00"
+    },
+    {
+      "name": "Visi Coolers",
+      "image": "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=600&q=80",
+      "description": "Single & double door visi coolers",
+      "id": "2f3a4c13-3245-4b2c-a6d9-58e4f40fad51",
+      "slug": "visi-coolers",
+      "visible": true,
+      "order": 4,
+      "created_at": "2026-07-07T03:33:22.864554+00:00"
+    },
+    {
+      "name": "Bakery Equipment",
+      "image": "https://images.unsplash.com/photo-1517433367423-c7e5b0f35086?w=600&q=80",
+      "description": "Ovens, mixers & display",
+      "id": "17cb3ad3-d445-4e56-94e7-34a89b1772de",
+      "slug": "bakery-equipment",
+      "visible": true,
+      "order": 5,
+      "created_at": "2026-07-07T03:33:22.865429+00:00"
+    }
+  ],
+  "brands": [
+    {
+      "name": "Blue Star",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Blue_Star_logo.svg/512px-Blue_Star_logo.svg.png",
+      "id": "1f75fd65-431a-4303-a429-8880d2855f46",
+      "slug": "blue-star",
+      "visible": true,
+      "created_at": "2026-07-07T03:33:22.866544+00:00"
+    },
+    {
+      "name": "LG",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/LG_logo_%282015%29.svg/512px-LG_logo_%282015%29.svg.png",
+      "id": "7cf12a03-d6b1-43b5-a7df-58852e46e413",
+      "slug": "lg",
+      "visible": true,
+      "created_at": "2026-07-07T03:33:22.867543+00:00"
+    },
+    {
+      "name": "Samsung",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Samsung_Logo.svg/512px-Samsung_Logo.svg.png",
+      "id": "84f3d74c-6ca3-423b-9b0c-105e442c7a32",
+      "slug": "samsung",
+      "visible": true,
+      "created_at": "2026-07-07T03:33:22.868377+00:00"
+    },
+    {
+      "name": "Voltas",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Voltas_logo.svg/512px-Voltas_logo.svg.png",
+      "id": "ec4aaecd-e044-44ec-a8ce-6d873f4c5769",
+      "slug": "voltas",
+      "visible": true,
+      "created_at": "2026-07-07T03:33:22.869240+00:00"
+    },
+    {
+      "name": "Whirlpool",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Whirlpool_Corporation_logo_2017.svg/512px-Whirlpool_Corporation_logo_2017.svg.png",
+      "id": "de1370be-e0a0-4171-903a-5f42823dec77",
+      "slug": "whirlpool",
+      "visible": true,
+      "created_at": "2026-07-07T03:33:22.870253+00:00"
+    },
+    {
+      "name": "Godrej",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Godrej_Logo.png/512px-Godrej_Logo.png",
+      "id": "c658bce9-a8ec-4c43-aaea-24f88489cbd5",
+      "slug": "godrej",
+      "visible": true,
+      "created_at": "2026-07-07T03:33:22.871300+00:00"
+    }
+  ],
+  "products": [
+    {
+      "id": "b6f68a5d-12a7-4858-b905-171588c3510a",
+      "name": "Samsung 500L Double Door Refrigerator",
+      "brand_id": "84f3d74c-6ca3-423b-9b0c-105e442c7a32",
+      "category_id": "f220dbf2-ac8a-464e-981c-aa3375221c50",
+      "model_number": "RT49K6338SL",
+      "description": "Large refrigerator with intelligent cooling and sleek finish.",
+      "highlights": [
+        "500L Capacity",
+        "Digital Inverter",
+        "Twin Cooling Plus",
+        "5 Star Energy Rating"
+      ],
+      "images": [
+        "/images/products/refrigerator.svg",
+        "/images/products/refrigerator-open.svg"
+      ],
+      "price": 54999,
+      "mrp": 62999,
+      "discount_percent": 12,
+      "gst_percent": 18,
+      "stock": 6,
+      "warranty": "1 Year + 10 Year Compressor",
+      "delivery_info": "Delivered in 5-7 business days",
+      "specifications": {
+        "Capacity": "500 L",
+        "Cooling Technology": "Twin Cooling Plus",
+        "Energy Rating": "5 Star",
+        "Power": "180 W",
+        "Compressor": "Digital Inverter",
+        "Voltage": "230V",
+        "Dimensions": "700x720x1850 mm",
+        "Weight": "85 kg",
+        "Body Material": "Metal",
+        "Temperature Range": "0-8\u00b0C",
+        "Warranty": "1 Year + 10 Year Compressor",
+        "Color": "Silver"
+      },
+      "rating": 4.5,
+      "badges": [
+        "featured",
+        "bestseller"
+      ],
+      "visible": true,
+      "created_at": "2026-07-07T03:33:22.875976+00:00"
+    }
+  ],
+  "comparisons": [],
+  "orders": [],
+  "cart": [],
+  "site_content": [
+    {
+      "id": "site-content",
+      "branding": {
+        "site_name": "Shraddha Sales",
+        "tagline": "Cooling \u00b7 Kitchen \u00b7 Bakery",
+        "company_logo": "",
+        "website_logo": "",
+        "footer_logo": "",
+        "favicon": ""
+      },
+      "hero_banners": [
+        {
+          "title": "Build a modern appliance storefront with trust, speed, and clarity.",
+          "subtitle": "Discover refrigerators, ACs, coolers, deep freezers and bakery equipment from top brands with premium UX designed for Indian businesses.",
+          "eyebrow": "Premium cooling solutions",
+          "image": "",
+          "cta_label": "Shop products",
+          "cta_link": "/products",
+          "secondary_label": "Browse categories",
+          "secondary_link": "/categories",
+          "active": true,
+          "sort_order": 0
+        }
+      ],
+      "homepage_banners": [],
+      "promotional_images": [],
+      "carousel_images": [],
+      "festival_offers": [],
+      "sale_banners": [],
+      "advertisement_banners": [],
+      "homepage_sections": [
+        {
+          "key": "featured_categories",
+          "title": "Featured categories",
+          "subtitle": "Shop by category",
+          "active": true,
+          "sort_order": 0
+        },
+        {
+          "key": "featured_products",
+          "title": "Top picks right now",
+          "subtitle": "Featured products",
+          "active": true,
+          "sort_order": 1
+        }
+      ],
+      "testimonials": [],
+      "customer_reviews": [],
+      "contact": {
+        "phone": "+91 98765 43210",
+        "email": "support@shraddhasales.com",
+        "address": "122 Commerce Avenue, Mumbai, India",
+        "locations": "Mumbai \u00b7 Delhi \u00b7 Pune",
+        "working_hours": "Mon - Sat, 9:00 AM - 7:00 PM"
+      },
+      "social_links": {
+        "instagram": "",
+        "facebook": "",
+        "linkedin": "",
+        "youtube": "",
+        "whatsapp": ""
+      },
+      "footer": {
+        "description": "Premium appliances for home and commercial cooling, kitchen and bakery solutions.",
+        "copyright": "Shraddha Sales. All rights reserved.",
+        "shop_links_title": "Shop",
+        "customer_links_title": "Customer"
+      },
+      "coupons": [],
+      "seo": {
+        "title": "Shraddha Sales",
+        "description": "Premium appliances for home and commercial cooling, kitchen and bakery solutions.",
+        "keywords": "appliances, refrigerators, air conditioners, coolers, bakery equipment"
+      },
+      "theme": {
+        "primary_color": "#1e3a8a",
+        "accent_color": "#f59e0b",
+        "body_font": "Manrope",
+        "heading_font": "Outfit"
+      },
+      "website_settings": {
+        "announcement": "COD available \u00b7 GST invoice",
+        "cod_enabled": true,
+        "gst_invoice_enabled": true
+      },
+      "created_at": "2026-08-01T09:03:20.461201+00:00"
+    }
+  ],
+  "subcategories": [],
+  "media": []
+}
