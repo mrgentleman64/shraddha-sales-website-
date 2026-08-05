@@ -1,0 +1,29 @@
+services:
+  - type: web_service
+    name: shraddha-sales-backend
+    env: python
+    plan: starter
+    branch: main
+    root: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: JWT_SECRET
+        sync: false
+      - key: MONGO_URL
+        sync: false
+      - key: DB_NAME
+        value: shraddha_sales
+      - key: ADMIN_EMAIL
+        value: admin@shraddhasales.com
+      - key: ADMIN_PASSWORD
+        value: admin123
+  - type: static_site
+    name: shraddha-sales-frontend
+    branch: main
+    root: frontend
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    envVars:
+      - key: NODE_ENV
+        value: production
