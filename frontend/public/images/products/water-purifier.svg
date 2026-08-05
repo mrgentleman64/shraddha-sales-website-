@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700" role="img" aria-label="Wall mounted water purifier">
+  <rect width="900" height="700" fill="#f8fafc"/>
+  <path d="M300 130h300v300c0 86-68 150-150 150s-150-64-150-150z" fill="#eef2f7" stroke="#94a3b8" stroke-width="10"/>
+  <rect x="345" y="190" width="210" height="120" rx="28" fill="#dbeafe"/>
+  <path d="M390 360h120" stroke="#1e3a8a" stroke-width="18" stroke-linecap="round"/>
+  <path d="M450 378v80" stroke="#0f172a" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="450" cy="502" r="30" fill="#bfdbfe"/>
+  <path d="M355 155h190" stroke="#fff" stroke-width="14" stroke-linecap="round"/>
+</svg>

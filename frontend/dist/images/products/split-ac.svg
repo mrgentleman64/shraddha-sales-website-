@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700" role="img" aria-label="Split air conditioner indoor unit">
+  <rect width="900" height="700" fill="#f8fafc"/>
+  <rect x="150" y="230" width="600" height="170" rx="42" fill="#f8fafc" stroke="#94a3b8" stroke-width="10"/>
+  <path d="M210 350h480" stroke="#cbd5e1" stroke-width="14" stroke-linecap="round"/>
+  <path d="M250 384c40 52 360 52 400 0" fill="none" stroke="#bfdbfe" stroke-width="20" stroke-linecap="round"/>
+  <circle cx="682" cy="286" r="12" fill="#22c55e"/>
+  <path d="M220 260h250" stroke="#fff" stroke-width="14" stroke-linecap="round"/>
+  <ellipse cx="450" cy="440" rx="320" ry="20" fill="#cbd5e1" opacity=".45"/>
+</svg>

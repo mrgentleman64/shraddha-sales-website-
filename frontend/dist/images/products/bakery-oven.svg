@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700" role="img" aria-label="Commercial bakery oven">
+  <rect width="900" height="700" fill="#f8fafc"/>
+  <rect x="260" y="100" width="380" height="500" rx="34" fill="#e2e8f0" stroke="#94a3b8" stroke-width="10"/>
+  <rect x="305" y="160" width="290" height="160" rx="20" fill="#0f172a"/>
+  <rect x="305" y="372" width="290" height="160" rx="20" fill="#0f172a"/>
+  <path d="M340 250h220M340 462h220" stroke="#f59e0b" stroke-width="18" stroke-linecap="round"/>
+  <g fill="#1e3a8a"><circle cx="570" cy="128" r="12"/><circle cx="530" cy="128" r="12"/><circle cx="490" cy="128" r="12"/></g>
+  <path d="M310 120h130" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700" role="img" aria-label="Open refrigerator shelves">
+  <rect width="900" height="700" fill="#f8fafc"/>
+  <rect x="280" y="90" width="280" height="520" rx="34" fill="#e2e8f0" stroke="#94a3b8" stroke-width="10"/>
+  <rect x="318" y="150" width="204" height="92" rx="16" fill="#dbeafe"/>
+  <rect x="318" y="280" width="204" height="92" rx="16" fill="#fff"/>
+  <rect x="318" y="410" width="204" height="92" rx="16" fill="#fff"/>
+  <path d="M310 260h220M310 390h220" stroke="#94a3b8" stroke-width="8"/>
+  <path d="M560 120l110 54v350l-110 62z" fill="#f1f5f9" stroke="#94a3b8" stroke-width="10"/>
+  <rect x="598" y="250" width="20" height="170" rx="10" fill="#1e3a8a"/>
+</svg>

@@ -1,0 +1,179 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { LogOut, Menu, Search, ShoppingCart, Truck, X } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext.jsx';
+import { useCart } from '../contexts/CartContext.jsx';
+import { api } from '../lib/api.js';
+import { applySiteContent, mergeContent } from '../lib/content.js';
+
+const navItems = [
+  { label: 'Home', path: '/' },
+  { label: 'Categories', path: '/categories' },
+  { label: 'Brands', path: '/brands' },
+  { label: 'Offers', path: '/products?badge=offer' },
+  { label: 'About', path: '/about' },
+  { label: 'Contact', path: '/contact' },
+];
+
+export default function Layout() {
+  const { user, logout } = useAuth();
+  const { count } = useCart();
+  const [query, setQuery] = useState('');
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [siteContent, setSiteContent] = useState(null);
+  const navigate = useNavigate();
+  const content = useMemo(() => mergeContent(siteContent), [siteContent]);
+  const socialLinks = Object.entries(content.social_links || {}).filter(([, value]) => value);
+
+  useEffect(() => {
+    let mounted = true;
+    api.get('/content')
+      .then((res) => {
+        const merged = mergeContent(res.data);
+        if (mounted) setSiteContent(merged);
+        applySiteContent(merged);
+      })
+      .catch(() => applySiteContent(mergeContent(null)));
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleSearch = (event) => {
+    event.preventDefault();
+    if (!query.trim()) return;
+    navigate(`/products?q=${encodeURIComponent(query.trim())}`);
+    setMobileOpen(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <div className="bg-slate-950 text-slate-200 text-[11px]">
+        <div className="container mx-auto px-4 py-2 flex flex-col sm:flex-row justify-between gap-3">
+          <span>{content.website_settings.announcement}</span>
+          <span className="hidden sm:inline">Support: {content.contact.phone}</span>
+        </div>
+      </div>
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
+        <div className="container mx-auto px-4 py-4 flex flex-wrap items-center gap-4 justify-between">
+          <Link to="/" className="flex items-center gap-3">
+            {content.branding.website_logo ? (
+              <img src={content.branding.website_logo} alt={content.branding.site_name} className="h-11 w-11 rounded-2xl object-contain shadow-lg" />
+            ) : (
+              <div className="h-11 w-11 rounded-2xl bg-navy grid place-items-center text-white shadow-lg">
+                <Truck size={20} />
+              </div>
+            )}
+            <div>
+              <div className="font-bold text-lg tracking-tight">{content.branding.site_name}</div>
+              <div className="text-[11px] uppercase text-slate-500">{content.branding.tagline}</div>
+            </div>
+          </Link>
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              className="w-full rounded-full border border-slate-300 bg-slate-50 py-3 pl-11 pr-4 text-sm outline-none focus:border-navy focus:ring-2 focus:ring-blue-200"
+              placeholder="Search appliances, brands, models..."
+            />
+            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-navy px-4 py-2 text-white text-sm hover:bg-slate-800">Search</button>
+          </form>
+          <div className="flex items-center gap-2">
+            <button className="md:hidden p-2 rounded-xl bg-slate-100" onClick={() => setMobileOpen((value) => !value)}>
+              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+            <div className="hidden md:flex items-center gap-1">
+              {navItems.map((item) => (
+                <NavLink key={item.path} to={item.path} className={({ isActive }) => `text-sm ${isActive ? 'text-navy font-semibold' : 'text-slate-600 hover:text-navy'}`}>{item.label}</NavLink>
+              ))}
+            </div>
+            <div className="flex items-center gap-1">
+              {user?.role === 'admin' && (
+                <Link to="/admin" className="rounded-full border border-slate-200 px-3 py-2 text-sm hover:bg-slate-100">Admin</Link>
+              )}
+              {user ? (
+                <>
+                  <Link to="/profile" className="rounded-full border border-slate-200 px-3 py-2 text-sm hover:bg-slate-100">{user.name.split(' ')[0]}</Link>
+                  <button onClick={logout} className="rounded-full border border-slate-200 px-3 py-2 text-sm hover:bg-slate-100"><LogOut size={16} /></button>
+                </>
+              ) : (
+                <Link to="/login" className="rounded-full border border-slate-200 px-3 py-2 text-sm hover:bg-slate-100">Login</Link>
+              )}
+              <Link to="/cart" className="relative rounded-full border border-slate-200 px-3 py-2 text-sm hover:bg-slate-100">
+                <ShoppingCart size={18} />
+                {count > 0 && <span className="absolute -right-1 -top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">{count}</span>}
+              </Link>
+            </div>
+          </div>
+        </div>
+        {mobileOpen && (
+          <div className="border-t border-slate-200 bg-white px-4 py-4 md:hidden">
+            <form onSubmit={handleSearch} className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                className="w-full rounded-full border border-slate-300 bg-slate-50 py-3 pl-11 pr-4 text-sm outline-none"
+                placeholder="Search appliances..."
+              />
+            </form>
+            <div className="grid gap-3">
+              {navItems.map((item) => (
+                <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">{item.label}</Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </header>
+      <main>
+        <Outlet />
+      </main>
+      <footer className="bg-slate-950 text-slate-300 mt-20">
+        <div className="container mx-auto px-4 py-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            {content.branding.footer_logo ? (
+              <img src={content.branding.footer_logo} alt={content.branding.site_name} className="mb-4 max-h-12 object-contain" />
+            ) : (
+              <div className="text-white font-semibold text-lg mb-3">{content.branding.site_name}</div>
+            )}
+            <p className="text-sm text-slate-400">{content.footer.description}</p>
+          </div>
+          <div>
+            <div className="text-white font-semibold mb-3">{content.footer.shop_links_title || 'Shop'}</div>
+            <ul className="space-y-2 text-sm text-slate-400">
+              <li><Link to="/categories">Categories</Link></li>
+              <li><Link to="/brands">Brands</Link></li>
+              <li><Link to="/products?badge=offer">Offers</Link></li>
+              <li><Link to="/products?badge=bestseller">Best Sellers</Link></li>
+            </ul>
+          </div>
+          <div>
+            <div className="text-white font-semibold mb-3">{content.footer.customer_links_title || 'Customer'}</div>
+            <ul className="space-y-2 text-sm text-slate-400">
+              <li><Link to="/profile">My Account</Link></li>
+              <li><Link to="/cart">Cart</Link></li>
+              <li><Link to="/about">About Us</Link></li>
+            </ul>
+          </div>
+          <div>
+            <div className="text-white font-semibold mb-3">Contact</div>
+            <div className="text-sm text-slate-400 space-y-2">
+              <div>{content.contact.phone}</div>
+              <div>{content.contact.email}</div>
+              <div>{content.contact.locations}</div>
+              {socialLinks.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {socialLinks.map(([key, value]) => (
+                    <a key={key} href={value} target="_blank" rel="noreferrer" className="rounded-full border border-slate-700 px-3 py-1 text-xs capitalize hover:bg-slate-800">{key}</a>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-slate-800 py-4 text-center text-xs text-slate-500">© {new Date().getFullYear()} {content.footer.copyright}</div>
+      </footer>
+    </div>
+  );
+}

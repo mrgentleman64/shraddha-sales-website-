@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700" role="img" aria-label="Glass door visi cooler">
+  <rect width="900" height="700" fill="#f8fafc"/>
+  <rect x="310" y="70" width="280" height="560" rx="32" fill="#f8fafc" stroke="#94a3b8" stroke-width="10"/>
+  <rect x="342" y="132" width="216" height="420" rx="22" fill="#dbeafe" stroke="#94a3b8" stroke-width="8"/>
+  <path d="M360 230h180M360 330h180M360 430h180" stroke="#94a3b8" stroke-width="8"/>
+  <g fill="#1e3a8a"><rect x="380" y="170" width="30" height="56" rx="9"/><rect x="444" y="170" width="30" height="56" rx="9"/><rect x="508" y="170" width="30" height="56" rx="9"/></g>
+  <g fill="#22c55e"><rect x="380" y="270" width="30" height="56" rx="9"/><rect x="444" y="270" width="30" height="56" rx="9"/><rect x="508" y="270" width="30" height="56" rx="9"/></g>
+  <g fill="#f59e0b"><rect x="380" y="370" width="30" height="56" rx="9"/><rect x="444" y="370" width="30" height="56" rx="9"/><rect x="508" y="370" width="30" height="56" rx="9"/></g>
+  <rect x="530" y="278" width="14" height="120" rx="7" fill="#0f172a"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700" role="img" aria-label="Commercial kitchen equipment">
+  <rect width="900" height="700" fill="#f8fafc"/>
+  <rect x="210" y="300" width="480" height="190" rx="26" fill="#e2e8f0" stroke="#94a3b8" stroke-width="10"/>
+  <rect x="255" y="210" width="390" height="92" rx="24" fill="#cbd5e1" stroke="#94a3b8" stroke-width="8"/>
+  <circle cx="330" cy="258" r="24" fill="#1e3a8a"/>
+  <circle cx="450" cy="258" r="24" fill="#1e3a8a"/>
+  <circle cx="570" cy="258" r="24" fill="#1e3a8a"/>
+  <path d="M270 360h360M270 420h360" stroke="#94a3b8" stroke-width="12" stroke-linecap="round"/>
+  <path d="M290 526h320" stroke="#475569" stroke-width="16" stroke-linecap="round"/>
+</svg>
