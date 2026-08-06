@@ -1,10 +1,11 @@
 import axios from 'axios';
 
-// Base API URL (without trailing slash). Use VITE_API_URL in .env
+// Base API URL (without trailing slash). Use VITE_API_URL in .env or .env.production.
 export const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
 export const api = axios.create({
   baseURL: API_BASE_URL ? `${API_BASE_URL}/api` : '/api',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },

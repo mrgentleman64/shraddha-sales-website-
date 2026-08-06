@@ -43,6 +43,17 @@ ALLOWED_UPLOAD_TYPES = {
 HAS_MULTIPART = importlib.util.find_spec('multipart') is not None
 
 
+def get_cors_origins() -> List[str]:
+    raw_origins = os.environ.get('CORS_ORIGINS', '').strip()
+    if not raw_origins or raw_origins == '*':
+        return []
+    return [origin.strip() for origin in raw_origins.split(',') if origin.strip()]
+
+
+CORS_ORIGINS = get_cors_origins()
+CORS_ORIGIN_REGEX = os.environ.get('CORS_ORIGIN_REGEX', r'https://[a-z0-9-]+\.vercel\.app|http://localhost:\d+')
+
+
 def jwt_secret() -> str:
     secret = os.environ.get('JWT_SECRET')
     if not secret:
@@ -882,7 +893,8 @@ app.include_router(api)
 app.mount('/api/uploads', StaticFiles(directory=str(UPLOAD_DIR), check_dir=False), name='uploads')
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*'],
+    allow_origins=CORS_ORIGINS,
+    allow_origin_regex=CORS_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],
