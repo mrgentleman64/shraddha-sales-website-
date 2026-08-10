@@ -25,6 +25,7 @@ logger = logging.getLogger('shradhasales')
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=1200)
 db = client[os.environ.get('DB_NAME', 'test_database')]
+DB_BACKEND = 'mongo'
 
 app = FastAPI(title='shradhasales API')
 api = APIRouter(prefix='/api')
@@ -886,7 +887,7 @@ async def admin_stats(_=Depends(require_admin)):
 
 @api.get('/')
 async def root():
-    return {'ok': True, 'service': 'shradhasales'}
+    return {'ok': True, 'service': 'shradhasales', 'database': DB_BACKEND}
 
 
 app.include_router(api)
@@ -927,12 +928,14 @@ SEED_PRODUCTS = [
 
 @app.on_event('startup')
 async def seed():
-    global db
+    global db, DB_BACKEND
     try:
         await client.admin.command('ping')
+        DB_BACKEND = 'mongo'
     except Exception as exc:
         logger.warning('MongoDB unavailable, using local JSON store: %s', exc)
         db = LocalDatabase(ROOT_DIR / 'local_db.json')
+        DB_BACKEND = 'local_json'
 
     await db.users.create_index('email', unique=True)
     await db.products.create_index('name')
