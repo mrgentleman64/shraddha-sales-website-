@@ -1,4 +1,4 @@
-# Shraddha Sales
+﻿# shradhasales
 
 Premium appliance e-commerce app based on `saved.txt`.
 
@@ -64,7 +64,7 @@ MongoDB is optional for local development. If `mongodb://localhost:27017` is ava
 
 Seeded admin:
 
-- Email: `admin@shraddhasales.com`
+- Email: `admin@shradhasales.com`
 - Password: `admin123`
 
 Seeded customer:

@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import ProductCard from '../components/ProductCard.jsx';
+import SEO, { breadcrumbSchema } from '../components/SEO.jsx';
 import { Input } from '../components/ui/input.jsx';
-import { Label } from '../components/ui/label.jsx';
+import { ProductGridSkeleton } from '../components/ui/skeleton.jsx';
+import { EmptyState } from '../components/ui/empty-state.jsx';
+import { Breadcrumbs } from '../components/ui/breadcrumbs.jsx';
 
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -50,14 +53,24 @@ export default function Products() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-10">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Shop Products</h1>
-        <p className="mt-2 text-sm text-slate-500">Browse our full product catalog with filters for categories, brands and offers.</p>
+    <div className="page-shell container mx-auto px-4 py-10">
+      <SEO
+        title="Products"
+        description="Shop refrigerators, air conditioners, coolers, water purifiers, and commercial appliances at shradhasales."
+        schema={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Products', path: '/products' }])}
+      />
+      <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Products' }]} />
+      <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="section-eyebrow">Catalog</p>
+          <h1 className="section-title mt-2">Shop Products</h1>
+          <p className="section-copy mt-2">Browse our full product catalog with filters for categories, brands and offers.</p>
+        </div>
+        <div className="soft-chip px-4 py-2 text-sm font-semibold text-slate-600">{loading ? 'Finding matches…' : `${products.length} products`}</div>
       </div>
-      <div className="grid gap-10 lg:grid-cols-[280px_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[280px_1fr] lg:gap-10">
         <aside className="space-y-8">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="section-panel p-6">
             <div className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Search</div>
             <Input value={q} onChange={(event) => updateParam('q', event.target.value)} placeholder="Search products" />
           </div>
@@ -92,9 +105,9 @@ export default function Products() {
         </aside>
         <section>
           {loading ? (
-            <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-slate-500">Loading products…</div>
+            <ProductGridSkeleton />
           ) : products.length === 0 ? (
-            <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-slate-500">No products found.</div>
+            <EmptyState title="No products found" message="Try clearing a filter or searching a broader appliance name, brand, or model." actionLabel="Clear filters" onAction={() => setSearchParams(new URLSearchParams())} />
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{products.map((product) => <ProductCard key={product.id} product={product} />)}</div>
           )}
@@ -106,7 +119,7 @@ export default function Products() {
 
 function FilterSection({ title, children }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="section-panel p-6">
       <div className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{title}</div>
       <div className="space-y-2">{children}</div>
     </div>
@@ -115,7 +128,7 @@ function FilterSection({ title, children }) {
 
 function FilterItem({ active, onClick, children }) {
   return (
-    <button type="button" onClick={onClick} className={`w-full rounded-2xl border px-4 py-3 text-left text-sm transition ${active ? 'border-navy bg-navy/10 text-navy' : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'}`}>
+    <button type="button" onClick={onClick} className={`interactive-lift w-full rounded-2xl border px-4 py-3 text-left text-sm transition ${active ? 'border-navy bg-navy/10 font-semibold text-navy shadow-sm' : 'border-slate-200 bg-slate-50/80 text-slate-700 hover:bg-white hover:shadow-sm'}`}>
       {children}
     </button>
   );

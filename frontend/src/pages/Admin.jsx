@@ -44,7 +44,7 @@ const tabs = [
 
 const blankContent = {
   branding: {
-    site_name: 'Shraddha Sales',
+    site_name: 'shradhasales',
     tagline: 'Cooling · Kitchen · Bakery',
     company_logo: '',
     website_logo: '',
@@ -63,7 +63,7 @@ const blankContent = {
   customer_reviews: [],
   contact: {
     phone: '+91 98765 43210',
-    email: 'support@shraddhasales.com',
+    email: 'support@shradhasales.com',
     address: '122 Commerce Avenue, Mumbai, India',
     locations: 'Mumbai · Delhi · Pune',
     working_hours: 'Mon - Sat, 9:00 AM - 7:00 PM',
@@ -77,13 +77,13 @@ const blankContent = {
   },
   footer: {
     description: 'Premium appliances for home and commercial cooling, kitchen and bakery solutions.',
-    copyright: 'Shraddha Sales. All rights reserved.',
+    copyright: 'shradhasales. All rights reserved.',
     shop_links_title: 'Shop',
     customer_links_title: 'Customer',
   },
   coupons: [],
   seo: {
-    title: 'Shraddha Sales',
+    title: 'shradhasales',
     description: 'Premium appliances for home and commercial cooling, kitchen and bakery solutions.',
     keywords: 'appliances, refrigerators, air conditioners, coolers, bakery equipment',
   },
@@ -574,7 +574,7 @@ export default function Admin() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-10">
+    <div className="page-shell container mx-auto px-4 py-10">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Admin dashboard</h1>
@@ -671,7 +671,7 @@ function OverviewPanel({ stats, products, orders, updateStatus, statusBusy }) {
       </div>
 
       <div className="mt-8 grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="section-panel p-6">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Revenue trend</p>
@@ -697,7 +697,7 @@ function OverviewPanel({ stats, products, orders, updateStatus, statusBusy }) {
             </ResponsiveContainer>
           </div>
         </div>
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="section-panel p-6">
           <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Inventory alert</p>
           <h2 className="mt-2 text-2xl font-semibold text-slate-900">Low stock products</h2>
           <div className="mt-6 space-y-4">
@@ -717,7 +717,7 @@ function OverviewPanel({ stats, products, orders, updateStatus, statusBusy }) {
         </div>
       </div>
 
-      <div className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mt-8 section-panel p-6">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-xl font-semibold text-slate-900">Recent orders</h2>
           <span className="text-sm text-slate-500">Latest 8 orders</span>
@@ -732,7 +732,7 @@ function ProductsPanel({ products, productSearch, setProductSearch, productForm,
   const update = (key, value) => setProductForm((current) => ({ ...current, [key]: value }));
   return (
     <div className="mt-8 grid gap-5 xl:grid-cols-[0.9fr_1.4fr]">
-      <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="section-panel p-6">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Product catalog</h2>
@@ -766,7 +766,7 @@ function ProductsPanel({ products, productSearch, setProductSearch, productForm,
         </div>
       </div>
 
-      <form onSubmit={saveProduct} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+      <form onSubmit={saveProduct} className="section-panel p-6">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">{productForm.id ? 'Edit product' : 'Add product'}</h2>
@@ -880,7 +880,7 @@ function TaxonomyPanel({ categories, subcategories, brands, categoryForm, setCat
 function TaxonomyEditor({ title, items, form, setForm, blank, onSubmit, onDelete, uploadFile, saving, imageField }) {
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   return (
-    <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="section-panel p-6">
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
         <Button size="sm" variant="outline" onClick={() => setForm(blank())}><Plus size={14} className="mr-2" />New</Button>
@@ -912,7 +912,7 @@ function TaxonomyEditor({ title, items, form, setForm, blank, onSubmit, onDelete
 function SubcategoryEditor({ categories, subcategories, form, setForm, onSubmit, onDelete, uploadFile, saving }) {
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   return (
-    <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="section-panel p-6">
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-xl font-semibold text-slate-900">Subcategories</h2>
         <Button size="sm" variant="outline" onClick={() => setForm(blankSubcategory(categories))}><Plus size={14} className="mr-2" />New</Button>
@@ -960,7 +960,7 @@ function ContentPanel({ content, setContent, products, uploadFile, saveContent, 
 
   return (
     <div className="mt-8 space-y-5">
-      <div className="flex flex-col gap-4 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 section-panel p-6 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-xl font-semibold text-slate-900">Website content and settings</h2>
           <p className="mt-1 text-sm text-slate-500">Edit logos, banners, offers, footer, SEO, theme, reviews, coupons, and contact information.</p>
@@ -1052,7 +1052,7 @@ function MediaPanel({ media, uploadFile, deleteMedia }) {
   };
 
   return (
-    <div className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="mt-8 section-panel p-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-xl font-semibold text-slate-900">Media library</h2>
@@ -1089,7 +1089,7 @@ function MediaPanel({ media, uploadFile, deleteMedia }) {
 
 function OrdersPanel({ orders, updateStatus, statusBusy }) {
   return (
-    <div className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="mt-8 section-panel p-6">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold text-slate-900">Orders</h2>
@@ -1156,7 +1156,7 @@ function ListEditor({ group, items, onChange, uploadFile, products }) {
   const Icon = group.icon || Layers;
 
   return (
-    <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="section-panel p-6">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-50 text-navy"><Icon size={18} /></span>
@@ -1327,7 +1327,7 @@ function SingleMediaInput({ label, value, onChange, uploadFile }) {
 
 function SettingsCard({ title, icon: Icon, children }) {
   return (
-    <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="section-panel p-6">
       <div className="mb-5 flex items-center gap-3">
         <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-50 text-navy"><Icon size={18} /></span>
         <h3 className="font-semibold text-slate-900">{title}</h3>
@@ -1339,7 +1339,7 @@ function SettingsCard({ title, icon: Icon, children }) {
 
 function StatCard({ icon: Icon, label, value }) {
   return (
-    <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="section-panel p-6">
       <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-navy">
         <Icon size={22} />
       </div>

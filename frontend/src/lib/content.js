@@ -1,6 +1,6 @@
-export const fallbackContent = {
+﻿export const fallbackContent = {
   branding: {
-    site_name: 'Shraddha Sales',
+    site_name: 'shradhasales',
     tagline: 'Cooling · Kitchen · Bakery',
     company_logo: '',
     website_logo: '',
@@ -32,7 +32,7 @@ export const fallbackContent = {
   customer_reviews: [],
   contact: {
     phone: '+91 98765 43210',
-    email: 'support@shraddhasales.com',
+    email: 'support@shradhasales.com',
     address: '122 Commerce Avenue, Mumbai, India',
     locations: 'Mumbai · Delhi · Pune',
     working_hours: 'Mon - Sat, 9:00 AM - 7:00 PM',
@@ -46,13 +46,13 @@ export const fallbackContent = {
   },
   footer: {
     description: 'Premium appliances for home and commercial cooling, kitchen and bakery solutions.',
-    copyright: 'Shraddha Sales. All rights reserved.',
+    copyright: 'shradhasales. All rights reserved.',
     shop_links_title: 'Shop',
     customer_links_title: 'Customer',
   },
   coupons: [],
   seo: {
-    title: 'Shraddha Sales',
+    title: 'shradhasales',
     description: 'Premium appliances for home and commercial cooling, kitchen and bakery solutions.',
     keywords: 'appliances, refrigerators, air conditioners, coolers, bakery equipment',
   },
@@ -98,13 +98,25 @@ export function applySiteContent(content) {
   if (merged.theme.body_font) root.style.setProperty('--body-font', `'${merged.theme.body_font}', ui-sans-serif, system-ui, sans-serif`);
   if (merged.theme.heading_font) root.style.setProperty('--heading-font', `'${merged.theme.heading_font}', ui-sans-serif, system-ui, sans-serif`);
 
-  document.title = merged.seo.title || merged.branding.site_name || 'Shraddha Sales';
+  document.title = merged.seo.title || merged.branding.site_name || 'shradhasales';
   setMeta('description', merged.seo.description);
   setMeta('keywords', merged.seo.keywords);
+  setMeta('theme-color', merged.theme.primary_color || '#1e3a8a');
+  setMetaProperty('og:site_name', merged.branding.site_name || 'shradhasales');
+  setMetaProperty('og:title', merged.seo.title || 'shradhasales');
+  setMetaProperty('og:description', merged.seo.description);
+  setMetaProperty('og:type', 'website');
+  setMetaName('twitter:card', 'summary_large_image');
+  setMetaName('twitter:title', merged.seo.title || 'shradhasales');
+  setMetaName('twitter:description', merged.seo.description);
   if (merged.branding.favicon) setFavicon(merged.branding.favicon);
 }
 
 function setMeta(name, content) {
+  setMetaName(name, content);
+}
+
+export function setMetaName(name, content) {
   if (!content) return;
   let tag = document.querySelector(`meta[name="${name}"]`);
   if (!tag) {
@@ -123,4 +135,26 @@ function setFavicon(href) {
     document.head.appendChild(link);
   }
   link.setAttribute('href', href);
+}
+
+export function setMetaProperty(property, content) {
+  if (!content) return;
+  let tag = document.querySelector(`meta[property="${property}"]`);
+  if (!tag) {
+    tag = document.createElement('meta');
+    tag.setAttribute('property', property);
+    document.head.appendChild(tag);
+  }
+  tag.setAttribute('content', content);
+}
+
+export function setCanonical(path = '/') {
+  const href = new URL(path, 'https://shradhasales.vercel.app').toString();
+  let tag = document.querySelector('link[rel="canonical"]');
+  if (!tag) {
+    tag = document.createElement('link');
+    tag.setAttribute('rel', 'canonical');
+    document.head.appendChild(tag);
+  }
+  tag.setAttribute('href', href);
 }

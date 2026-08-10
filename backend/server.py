@@ -1,4 +1,4 @@
-from dotenv import load_dotenv
+﻿from dotenv import load_dotenv
 from pathlib import Path
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, Query, UploadFile, File
 from fastapi.staticfiles import StaticFiles
@@ -20,13 +20,13 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger('shraddha')
+logger = logging.getLogger('shradhasales')
 
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=1200)
 db = client[os.environ.get('DB_NAME', 'test_database')]
 
-app = FastAPI(title='Shraddha Sales API')
+app = FastAPI(title='shradhasales API')
 api = APIRouter(prefix='/api')
 
 JWT_ALGO = 'HS256'
@@ -143,7 +143,7 @@ def strip_doc(doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
 DEFAULT_SITE_CONTENT: Dict[str, Any] = {
     'id': 'site-content',
     'branding': {
-        'site_name': 'Shraddha Sales',
+        'site_name': 'shradhasales',
         'tagline': 'Cooling · Kitchen · Bakery',
         'company_logo': '',
         'website_logo': '',
@@ -178,7 +178,7 @@ DEFAULT_SITE_CONTENT: Dict[str, Any] = {
     'customer_reviews': [],
     'contact': {
         'phone': '+91 98765 43210',
-        'email': 'support@shraddhasales.com',
+        'email': 'support@shradhasales.com',
         'address': '122 Commerce Avenue, Mumbai, India',
         'locations': 'Mumbai · Delhi · Pune',
         'working_hours': 'Mon - Sat, 9:00 AM - 7:00 PM',
@@ -192,13 +192,13 @@ DEFAULT_SITE_CONTENT: Dict[str, Any] = {
     },
     'footer': {
         'description': 'Premium appliances for home and commercial cooling, kitchen and bakery solutions.',
-        'copyright': 'Shraddha Sales. All rights reserved.',
+        'copyright': 'shradhasales. All rights reserved.',
         'shop_links_title': 'Shop',
         'customer_links_title': 'Customer',
     },
     'coupons': [],
     'seo': {
-        'title': 'Shraddha Sales',
+        'title': 'shradhasales',
         'description': 'Premium appliances for home and commercial cooling, kitchen and bakery solutions.',
         'keywords': 'appliances, refrigerators, air conditioners, coolers, bakery equipment',
     },
@@ -886,7 +886,7 @@ async def admin_stats(_=Depends(require_admin)):
 
 @api.get('/')
 async def root():
-    return {'ok': True, 'service': 'Shraddha Sales'}
+    return {'ok': True, 'service': 'shradhasales'}
 
 
 app.include_router(api)
@@ -942,7 +942,7 @@ async def seed():
     await db.cart.create_index('user_id')
     await db.orders.create_index('user_id')
 
-    admin_email = os.environ.get('ADMIN_EMAIL', 'admin@shraddhasales.com').lower()
+    admin_email = os.environ.get('ADMIN_EMAIL', 'admin@shradhasales.com').lower()
     admin_pw = os.environ.get('ADMIN_PASSWORD', 'admin123')
     existing = await db.users.find_one({'email': admin_email})
     if not existing:

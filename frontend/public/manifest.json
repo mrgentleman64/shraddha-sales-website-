@@ -1,0 +1,17 @@
+{
+  "name": "shradhasales",
+  "short_name": "shradhasales",
+  "description": "Premium commercial and home appliances store from shradhasales.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1e3a8a",
+  "icons": [
+    {
+      "src": "/images/products/hero-appliances.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

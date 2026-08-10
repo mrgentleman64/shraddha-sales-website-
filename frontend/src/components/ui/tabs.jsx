@@ -13,12 +13,12 @@ export function Tabs({ children, defaultValue }) {
 }
 
 export function TabsList({ children, className }) {
-  return <div className={`inline-flex flex-wrap rounded-2xl bg-slate-100 p-1 ${className || ''}`}>{children}</div>;
+  return <div className={`inline-flex flex-wrap rounded-2xl border border-slate-200 bg-slate-100/80 p-1 ${className || ''}`}>{children}</div>;
 }
 
 export function TabsTrigger({ value, active, setActive, children, className }) {
   return (
-    <button type="button" onClick={() => setActive(value)} className={`rounded-2xl px-4 py-2 text-sm transition ${active === value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'} ${className || ''}`}>
+    <button type="button" onClick={() => setActive(value)} className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${active === value ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:bg-white/70 hover:text-slate-900'} ${className || ''}`}>
       {children}
     </button>
   );

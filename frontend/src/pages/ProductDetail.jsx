@@ -11,6 +11,10 @@ import { toast } from 'sonner';
 import ProductCard from '../components/ProductCard.jsx';
 import ZoomableImage from '../components/ui/ZoomableImage.jsx';
 import LazyImage from '../components/ui/LazyImage.jsx';
+import SEO, { breadcrumbSchema } from '../components/SEO.jsx';
+import { Badge } from '../components/ui/badge.jsx';
+import { Skeleton } from '../components/ui/skeleton.jsx';
+import { Breadcrumbs } from '../components/ui/breadcrumbs.jsx';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -49,17 +53,39 @@ export default function ProductDetail() {
   };
 
   if (!product) {
-    return <div className="container mx-auto px-4 py-16 text-slate-500">Loading product…</div>;
+    return <div className="container mx-auto px-4 py-16"><Skeleton className="h-[520px] w-full rounded-[2rem]" /></div>;
   }
 
   return (
-    <div className="container mx-auto px-4 py-10">
-      <div className="mb-4 text-sm text-slate-500">
-        <Link to="/" className="hover:text-navy">Home</Link> / <Link to="/products" className="hover:text-navy">Products</Link> / <span>{product.name}</span>
-      </div>
+    <div className="page-shell container mx-auto px-4 py-10">
+      <SEO
+        title={product.name}
+        description={product.description || `${product.name} from shradhasales with trusted delivery and checkout.`}
+        image={product.images?.[0]}
+        type="product"
+        schema={[
+          breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Products', path: '/products' }, { name: product.name, path: `/product/${product.id}` }]),
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: product.name,
+            image: product.images || [],
+            description: product.description,
+            sku: product.model_number,
+            brand: { '@type': 'Brand', name: product.brand?.name },
+            offers: {
+              '@type': 'Offer',
+              priceCurrency: 'INR',
+              price: product.price,
+              availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            },
+          },
+        ]}
+      />
+      <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Products', to: '/products' }, { label: product.name }]} />
       <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
         <div>
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="section-panel p-6">
             <div className="grid gap-4">
               <ZoomableImage 
                 src={product.images?.[activeImage]} 
@@ -84,7 +110,7 @@ export default function ProductDetail() {
           </div>
         </div>
         <div className="space-y-6">
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="section-panel p-8">
             <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.24em] text-slate-500">
               {product.brand?.logo && <img src={product.brand.logo} alt={product.brand.name} className="h-5 object-contain" />}
               <span>{product.brand?.name}</span>
@@ -102,7 +128,7 @@ export default function ProductDetail() {
                 <div className="text-4xl font-bold text-slate-900">{inr(product.price)}</div>
                 {product.mrp > product.price && <div className="text-sm text-slate-400 line-through">{inr(product.mrp)}</div>}
               </div>
-              <div className="rounded-3xl bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">{product.discount_percent}% off</div>
+              <Badge variant="success">{product.discount_percent}% off</Badge>
             </div>
             <p className="mt-3 text-sm text-slate-500">Inclusive of {product.gst_percent}% GST. Delivery in 5-7 business days.</p>
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
@@ -115,7 +141,7 @@ export default function ProductDetail() {
               <Button onClick={handleBuy} variant="solid" className="w-full bg-navy hover:bg-slate-800">Buy Now</Button>
             </div>
           </div>
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="section-panel p-8">
             <Tabs defaultValue="highlights">
               <TabsList>
                 <TabsTrigger value="highlights">Highlights</TabsTrigger>
@@ -133,7 +159,7 @@ export default function ProductDetail() {
               <TabsContent value="specs">
                 <div className="mt-6 grid gap-2">
                   {Object.entries(product.specifications || {}).map(([key, value]) => (
-                    <div key={key} className="grid grid-cols-[180px_1fr] gap-3 rounded-3xl bg-slate-50 p-4 text-sm">
+                    <div key={key} className="grid gap-2 rounded-3xl bg-slate-50 p-4 text-sm sm:grid-cols-[180px_1fr] sm:gap-3">
                       <div className="text-slate-500">{key}</div>
                       <div className="font-medium text-slate-900">{value}</div>
                     </div>
@@ -164,7 +190,7 @@ export default function ProductDetail() {
           </div>
           <div className="grid gap-5 md:grid-cols-3">
             {reviews.slice(0, 6).map((review, index) => (
-              <div key={`${review.name}-${index}`} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+              <div key={`${review.name}-${index}`} className="section-panel premium-card-hover p-6">
                 <div className="flex items-center gap-2 text-sm text-amber-500">
                   <Star size={16} />
                   <span>{Number(review.rating || 0).toFixed(1)}</span>
@@ -186,8 +212,8 @@ export default function ProductDetail() {
             </div>
             <Link to="/admin" className="text-sm font-semibold text-navy hover:underline">Manage comparisons</Link>
           </div>
-          <div className="overflow-x-auto rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-            <table className="min-w-full text-sm">
+          <div className="section-panel overflow-x-auto">
+            <table className="premium-table min-w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 text-left">
                   <th className="sticky left-0 z-10 bg-slate-50 px-4 py-4">Specification</th>
@@ -234,7 +260,7 @@ export default function ProductDetail() {
 
 function InfoCard({ icon: Icon, title, value }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+    <div className="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-5 transition hover:bg-white hover:shadow-sm">
       <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-navy shadow-sm"><Icon size={20} /></div>
       <div className="mt-4 text-sm text-slate-500">{title}</div>
       <div className="mt-2 text-base font-semibold text-slate-900">{value}</div>

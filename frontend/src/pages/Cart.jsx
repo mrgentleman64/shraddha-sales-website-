@@ -1,10 +1,11 @@
-import { Link, useNavigate } from 'react-router-dom';
+﻿import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useCart } from '../contexts/CartContext.jsx';
 import { Button } from '../components/ui/button.jsx';
 import { inr } from '../lib/api.js';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import LazyImage from '../components/ui/LazyImage.jsx';
+import SEO from '../components/SEO.jsx';
 
 export default function Cart() {
   const { user } = useAuth();
@@ -16,31 +17,34 @@ export default function Cart() {
 
   if (!user) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
+      <div className="page-shell container mx-auto px-4 py-16 text-center">
+        <SEO title="Cart" description="Review your shradhasales cart and continue shopping." />
         <h1 className="text-3xl font-bold text-slate-900">Your cart is waiting</h1>
         <p className="mt-3 text-slate-500">Please login to view your cart.</p>
-        <Link to="/login" className="mt-6 inline-flex rounded-2xl bg-navy px-6 py-3 text-white">Login</Link>
+        <Link to="/login" className="interactive-lift mt-6 inline-flex rounded-2xl bg-navy px-6 py-3 font-semibold text-white shadow-[0_12px_28px_rgba(30,58,138,0.22)]">Login</Link>
       </div>
     );
   }
 
   if (items.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
+      <div className="page-shell container mx-auto px-4 py-16 text-center">
+        <SEO title="Cart" description="Your shradhasales cart is empty. Browse products to continue." />
         <h1 className="text-3xl font-bold text-slate-900">Your cart is empty</h1>
         <p className="mt-3 text-slate-500">Add products to continue.</p>
-        <Link to="/products" className="mt-6 inline-flex rounded-2xl bg-navy px-6 py-3 text-white">Browse products</Link>
+        <Link to="/products" className="interactive-lift mt-6 inline-flex rounded-2xl bg-navy px-6 py-3 font-semibold text-white shadow-[0_12px_28px_rgba(30,58,138,0.22)]">Browse products</Link>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-10">
+    <div className="page-shell container mx-auto px-4 py-10">
+      <SEO title="Shopping Cart" description="Review selected appliances in your shradhasales shopping cart." />
       <h1 className="text-3xl font-bold text-slate-900">Shopping Cart</h1>
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div className="space-y-4">
           {items.map((item) => (
-            <div key={item.id} className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm flex flex-col gap-4 sm:flex-row">
+            <div key={item.id} className="section-panel premium-card-hover flex flex-col gap-4 p-5 sm:flex-row">
               <div className="flex h-28 w-28 items-center justify-center rounded-3xl bg-slate-50">
                 <LazyImage 
                   src={item.product?.images?.[0]} 
@@ -65,7 +69,7 @@ export default function Cart() {
             </div>
           ))}
         </div>
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="section-panel p-6">
           <h2 className="text-xl font-semibold text-slate-900">Order summary</h2>
           <div className="mt-5 space-y-3 text-sm text-slate-600">
             <div className="flex justify-between"><span>Subtotal</span><span>{inr(subtotal)}</span></div>
@@ -73,7 +77,7 @@ export default function Cart() {
             <div className="flex justify-between"><span>Shipping</span><span>{inr(shipping)}</span></div>
           </div>
           <div className="mt-4 border-t border-slate-200 pt-4 text-lg font-semibold text-slate-900 flex justify-between">Total <span>{inr(total)}</span></div>
-          <button onClick={() => navigate('/checkout')} className="mt-6 w-full rounded-2xl bg-navy px-5 py-3 text-white hover:bg-slate-800">Proceed to checkout</button>
+          <button onClick={() => navigate('/checkout')} className="interactive-lift mt-6 w-full rounded-2xl bg-navy px-5 py-3 font-semibold text-white shadow-[0_12px_28px_rgba(30,58,138,0.22)] hover:bg-blue-950">Proceed to checkout</button>
         </div>
       </div>
     </div>

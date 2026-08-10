@@ -1,6 +1,6 @@
-services:
+﻿services:
   - type: web_service
-    name: shraddha-sales-backend
+    name: shradhasales-backend
     env: python
     plan: starter
     branch: main
@@ -13,13 +13,13 @@ services:
       - key: MONGO_URL
         sync: false
       - key: DB_NAME
-        value: shraddha_sales
+        value: shradhasales
       - key: ADMIN_EMAIL
-        value: admin@shraddhasales.com
+        value: admin@shradhasales.com
       - key: ADMIN_PASSWORD
         value: admin123
   - type: static_site
-    name: shraddha-sales-frontend
+    name: shradhasales-frontend
     branch: main
     root: frontend
     buildCommand: npm install && npm run build

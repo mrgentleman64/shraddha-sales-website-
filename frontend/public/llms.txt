@@ -1,0 +1,11 @@
+# shradhasales
+
+Premium commercial and home appliance store catalog for refrigerators, freezers, air conditioners, water coolers, visi coolers, and bakery equipment.
+
+## Key Pages
+
+- Home: /
+- Products: /products
+- Categories: /categories
+- Brands: /brands
+- Contact: /contact

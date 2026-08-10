@@ -30,10 +30,11 @@ export default function Register() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-16">
-      <div className="mx-auto max-w-lg rounded-[2rem] border border-slate-200 bg-white p-10 shadow-sm">
-        <h1 className="text-3xl font-bold text-slate-900">Create account</h1>
-        <p className="mt-2 text-sm text-slate-500">Register now to save your orders and checkout faster.</p>
+    <div className="page-shell container mx-auto px-4 py-16">
+      <div className="section-panel mx-auto max-w-lg p-10">
+        <p className="section-eyebrow">Account</p>
+        <h1 className="section-title mt-2">Create account</h1>
+        <p className="section-copy mt-2">Register now to save your orders and checkout faster.</p>
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <div>
             <Label htmlFor="name">Full name</Label>

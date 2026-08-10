@@ -21,7 +21,7 @@ export default function Orders() {
 
   if (!user) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
+      <div className="page-shell container mx-auto px-4 py-16 text-center">
         <h1 className="text-3xl font-bold text-slate-900">Please login to view orders</h1>
         <p className="mt-3 text-slate-500">Your order history and admin order list appear here.</p>
         <Button onClick={() => navigate('/login')} className="mt-6">Login</Button>
@@ -30,28 +30,29 @@ export default function Orders() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-10">
+    <div className="page-shell container mx-auto px-4 py-10">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">{user.role === 'admin' ? 'All Orders' : 'My Orders'}</h1>
-          <p className="mt-2 text-sm text-slate-500">{user.role === 'admin' ? 'Manage order status and track revenue.' : 'Review your recent purchases.'}</p>
+          <p className="section-eyebrow">{user.role === 'admin' ? 'Operations' : 'Purchases'}</p>
+          <h1 className="section-title mt-2">{user.role === 'admin' ? 'All Orders' : 'My Orders'}</h1>
+          <p className="section-copy mt-2">{user.role === 'admin' ? 'Manage order status and track revenue.' : 'Review your recent purchases.'}</p>
         </div>
-        <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700 inline-flex items-center gap-2">
+        <div className="soft-chip inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700">
           <ShieldCheck size={18} /> {orders.length} orders
         </div>
       </div>
       <div className="mt-8 space-y-4">
         {orders.length === 0 ? (
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-10 text-center text-slate-500">No orders found.</div>
+          <div className="section-panel p-10 text-center text-slate-500">No orders found.</div>
         ) : (
           orders.map((order) => (
-            <div key={order.id} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <div key={order.id} className="section-panel p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="text-sm text-slate-500">Order ID</div>
                   <div className="text-lg font-semibold text-slate-900">#{order.id.slice(0, 8).toUpperCase()}</div>
                 </div>
-                <div className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">{order.status}</div>
+                <div className="soft-chip px-4 py-2 text-sm font-semibold text-slate-700">{order.status}</div>
               </div>
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
                 <div className="rounded-3xl bg-slate-50 p-4">

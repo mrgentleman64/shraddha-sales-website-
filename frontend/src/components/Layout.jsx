@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 import { useCart } from '../contexts/CartContext.jsx';
 import { api } from '../lib/api.js';
 import { applySiteContent, mergeContent } from '../lib/content.js';
+import SEO, { organizationSchema } from './SEO.jsx';
 
 const navItems = [
   { label: 'Home', path: '/' },
@@ -47,60 +48,62 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="bg-slate-950 text-slate-200 text-[11px]">
+    <div className="min-h-screen overflow-x-hidden text-slate-900">
+      <SEO schema={organizationSchema()} />
+      <div className="bg-slate-950 text-[11px] text-slate-200">
         <div className="container mx-auto px-4 py-2 flex flex-col sm:flex-row justify-between gap-3">
           <span>{content.website_settings.announcement}</span>
           <span className="hidden sm:inline">Support: {content.contact.phone}</span>
         </div>
       </div>
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/88 shadow-sm shadow-slate-900/5 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-4 flex flex-wrap items-center gap-4 justify-between">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/" className="flex min-w-0 items-center gap-3">
             {content.branding.website_logo ? (
-              <img src={content.branding.website_logo} alt={content.branding.site_name} className="h-11 w-11 rounded-2xl object-contain shadow-lg" />
+              <img src={content.branding.website_logo} alt={content.branding.site_name} width="44" height="44" className="h-11 w-11 rounded-2xl object-contain shadow-lg" />
             ) : (
               <div className="h-11 w-11 rounded-2xl bg-navy grid place-items-center text-white shadow-lg">
                 <Truck size={20} />
               </div>
             )}
             <div>
-              <div className="font-bold text-lg tracking-tight">{content.branding.site_name}</div>
-              <div className="text-[11px] uppercase text-slate-500">{content.branding.tagline}</div>
+              <div className="truncate text-lg font-bold tracking-tight">{content.branding.site_name}</div>
+              <div className="truncate text-[11px] uppercase text-slate-500">{content.branding.tagline}</div>
             </div>
           </Link>
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl relative">
+          <form onSubmit={handleSearch} className="relative hidden max-w-2xl flex-1 md:flex">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              className="w-full rounded-full border border-slate-300 bg-slate-50 py-3 pl-11 pr-4 text-sm outline-none focus:border-navy focus:ring-2 focus:ring-blue-200"
+              className="w-full rounded-full border border-slate-200 bg-slate-50/90 py-3 pl-11 pr-28 text-sm outline-none transition focus:border-navy focus:bg-white focus:ring-4 focus:ring-blue-100"
               placeholder="Search appliances, brands, models..."
+              aria-label="Search products"
             />
-            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-navy px-4 py-2 text-white text-sm hover:bg-slate-800">Search</button>
+            <button type="submit" className="interactive-lift absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-navy px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-950">Search</button>
           </form>
           <div className="flex items-center gap-2">
-            <button className="md:hidden p-2 rounded-xl bg-slate-100" onClick={() => setMobileOpen((value) => !value)}>
+            <button className="rounded-xl bg-slate-100 p-2 transition hover:bg-slate-200 md:hidden" onClick={() => setMobileOpen((value) => !value)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen}>
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
             <div className="hidden md:flex items-center gap-1">
               {navItems.map((item) => (
-                <NavLink key={item.path} to={item.path} className={({ isActive }) => `text-sm ${isActive ? 'text-navy font-semibold' : 'text-slate-600 hover:text-navy'}`}>{item.label}</NavLink>
+                <NavLink key={item.path} to={item.path} className={({ isActive }) => `rounded-full px-3 py-2 text-sm transition ${isActive ? 'bg-blue-50 text-navy font-semibold' : 'text-slate-600 hover:bg-slate-100 hover:text-navy'}`}>{item.label}</NavLink>
               ))}
             </div>
             <div className="flex items-center gap-1">
               {user?.role === 'admin' && (
-                <Link to="/admin" className="rounded-full border border-slate-200 px-3 py-2 text-sm hover:bg-slate-100">Admin</Link>
+                <Link to="/admin" className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-100">Admin</Link>
               )}
               {user ? (
                 <>
-                  <Link to="/profile" className="rounded-full border border-slate-200 px-3 py-2 text-sm hover:bg-slate-100">{user.name.split(' ')[0]}</Link>
-                  <button onClick={logout} className="rounded-full border border-slate-200 px-3 py-2 text-sm hover:bg-slate-100"><LogOut size={16} /></button>
+                  <Link to="/profile" className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-100">{user.name.split(' ')[0]}</Link>
+                  <button onClick={logout} className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-100" aria-label="Log out"><LogOut size={16} /></button>
                 </>
               ) : (
-                <Link to="/login" className="rounded-full border border-slate-200 px-3 py-2 text-sm hover:bg-slate-100">Login</Link>
+                <Link to="/login" className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-100">Login</Link>
               )}
-              <Link to="/cart" className="relative rounded-full border border-slate-200 px-3 py-2 text-sm hover:bg-slate-100">
+              <Link to="/cart" className="relative rounded-full border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-100" aria-label="Cart">
                 <ShoppingCart size={18} />
                 {count > 0 && <span className="absolute -right-1 -top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">{count}</span>}
               </Link>
@@ -116,6 +119,7 @@ export default function Layout() {
                 onChange={(event) => setQuery(event.target.value)}
                 className="w-full rounded-full border border-slate-300 bg-slate-50 py-3 pl-11 pr-4 text-sm outline-none"
                 placeholder="Search appliances..."
+                aria-label="Search products"
               />
             </form>
             <div className="grid gap-3">
@@ -129,7 +133,7 @@ export default function Layout() {
       <main>
         <Outlet />
       </main>
-      <footer className="bg-slate-950 text-slate-300 mt-20">
+      <footer className="mt-20 bg-slate-950 text-slate-300">
         <div className="container mx-auto px-4 py-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             {content.branding.footer_logo ? (
@@ -172,8 +176,9 @@ export default function Layout() {
             </div>
           </div>
         </div>
-        <div className="border-t border-slate-800 py-4 text-center text-xs text-slate-500">© {new Date().getFullYear()} {content.footer.copyright}</div>
+        <div className="border-t border-slate-800 py-4 text-center text-xs text-slate-400">© {new Date().getFullYear()} {content.footer.copyright}</div>
       </footer>
     </div>
   );
 }
+

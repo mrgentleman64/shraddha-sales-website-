@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useCart } from '../contexts/CartContext.jsx';
@@ -7,6 +7,7 @@ import { Button } from '../components/ui/button.jsx';
 import { Input } from '../components/ui/input.jsx';
 import { Label } from '../components/ui/label.jsx';
 import { toast } from 'sonner';
+import SEO from '../components/SEO.jsx';
 
 export default function Checkout() {
   const { user } = useAuth();
@@ -53,10 +54,11 @@ export default function Checkout() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-10">
+    <div className="page-shell container mx-auto px-4 py-10">
+      <SEO title="Checkout" description="Complete your shradhasales appliance order with secure checkout." />
       <h1 className="text-3xl font-bold text-slate-900">Checkout</h1>
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
-        <form onSubmit={handleSubmit} className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm space-y-6">
+        <form onSubmit={handleSubmit} className="section-panel space-y-6 p-8">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Shipping details</p>
           </div>
@@ -75,7 +77,7 @@ export default function Checkout() {
           </div>
           <Button type="submit" disabled={busy} className="w-full">{busy ? 'Placing order…' : 'Place order'}</Button>
         </form>
-        <aside className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+        <aside className="section-panel p-8">
           <h2 className="text-xl font-semibold text-slate-900">Order summary</h2>
           <div className="mt-5 space-y-4">
             {items.map((item) => (

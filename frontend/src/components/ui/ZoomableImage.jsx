@@ -25,17 +25,17 @@ export default function ZoomableImage({
     <>
       <div
         ref={containerRef}
-        className={`relative group overflow-hidden cursor-zoom-in rounded-2xl ${containerClassName}`}
+        className={`group relative overflow-hidden rounded-2xl ${containerClassName}`}
         onClick={() => setIsZoomed(true)}
         onMouseMove={handleMouseMove}
       >
         <LazyImage
           src={src}
           alt={alt}
-          className={`${className} group-hover:scale-110 transition-transform duration-300`}
+          className={`${className} transition-transform duration-300 group-hover:scale-[1.03]`}
         />
-        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="bg-navy text-white p-2 rounded-lg shadow-lg">
+        <div className="absolute right-4 top-4 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="rounded-2xl bg-navy p-2 text-white shadow-lg">
             <ZoomIn size={20} />
           </div>
         </div>
@@ -49,12 +49,13 @@ export default function ZoomableImage({
           <div className="relative w-full h-full max-w-4xl max-h-[90vh] flex items-center justify-center">
             <button
               onClick={() => setIsZoomed(false)}
-              className="absolute top-6 right-6 text-white hover:bg-white/20 p-2 rounded-lg transition z-10"
+              className="absolute right-6 top-6 z-10 rounded-2xl p-2 text-white transition hover:bg-white/20"
+              aria-label="Close image preview"
             >
               <X size={24} />
             </button>
             <div
-              className="w-full h-full flex items-center justify-center bg-slate-900 rounded-lg overflow-hidden"
+              className="flex h-full w-full items-center justify-center overflow-hidden rounded-[2rem] bg-slate-900"
               onClick={(e) => e.stopPropagation()}
             >
               <img

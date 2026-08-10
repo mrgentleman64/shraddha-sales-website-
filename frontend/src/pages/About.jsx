@@ -1,55 +1,47 @@
+import { Building2, Check, Headphones, PackageCheck, ShieldCheck, Star } from 'lucide-react';
+import SEO, { breadcrumbSchema } from '../components/SEO.jsx';
+
+const promises = [
+  { icon: PackageCheck, title: 'Fast shipping', copy: 'Delivered quickly across India with reliable partners and careful packaging.', tone: 'bg-amber-50 text-amber-700' },
+  { icon: Star, title: 'Trusted brands', copy: 'Handpicked appliances from leading brands for quality and value.', tone: 'bg-emerald-50 text-emerald-700' },
+  { icon: ShieldCheck, title: 'Secure checkout', copy: 'Protect your data with secure authentication and encrypted payments.', tone: 'bg-blue-50 text-navy' },
+  { icon: Headphones, title: 'Expert support', copy: 'Need help? Our support team is ready to answer product and order questions.', tone: 'bg-orange-50 text-orange-700' },
+];
+
 export default function About() {
   return (
-    <div className="container mx-auto px-4 py-14">
-      <div className="grid gap-10 lg:grid-cols-[0.95fr_0.8fr] items-start">
+    <div className="page-shell container mx-auto px-4 py-14">
+      <SEO title="About" description="Learn about shradhasales, a trusted store for premium commercial appliances." schema={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'About', path: '/about' }])} />
+      <div className="grid items-start gap-10 lg:grid-cols-[0.95fr_0.8fr]">
         <div>
-          <h1 className="text-4xl font-bold text-slate-900">About Shraddha Sales</h1>
-          <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">Shraddha Sales brings premium commercial appliances to your doorstep with fast delivery, trusted brands, and seamless checkout. Built for businesses that want better value and curated choices.</p>
+          <p className="section-eyebrow">Our promise</p>
+          <h1 className="section-title mt-2">About shradhasales</h1>
+          <p className="section-copy mt-4 max-w-3xl">shradhasales brings premium commercial appliances to your doorstep with fast delivery, trusted brands, and seamless checkout. Built for businesses that want better value and curated choices.</p>
           <div className="mt-10 grid gap-6 sm:grid-cols-2">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-lg transition">
-              <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-amber-100 mb-4">
-                <span className="text-xl">📦</span>
+            {promises.map((item) => (
+              <div key={item.title} className="section-panel premium-card-hover p-6">
+                <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl ${item.tone}`}>
+                  <item.icon size={22} />
+                </div>
+                <h2 className="text-xl font-semibold text-slate-900">{item.title}</h2>
+                <p className="mt-3 text-sm leading-6 text-slate-500">{item.copy}</p>
               </div>
-              <h2 className="text-xl font-semibold text-slate-900">Fast shipping</h2>
-              <p className="mt-3 text-sm text-slate-500">Delivered quickly across India with reliable partners and careful packaging.</p>
-            </div>
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-lg transition">
-              <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-emerald-100 mb-4">
-                <span className="text-xl">⭐</span>
-              </div>
-              <h2 className="text-xl font-semibold text-slate-900">Trusted brands</h2>
-              <p className="mt-3 text-sm text-slate-500">Handpicked appliances from leading brands for quality and value.</p>
-            </div>
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-lg transition">
-              <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-blue-100 mb-4">
-                <span className="text-xl">🔒</span>
-              </div>
-              <h2 className="text-xl font-semibold text-slate-900">Secure checkout</h2>
-              <p className="mt-3 text-sm text-slate-500">Protect your data with secure authentication and encrypted payments.</p>
-            </div>
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-lg transition">
-              <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-orange-100 mb-4">
-                <span className="text-xl">💬</span>
-              </div>
-              <h2 className="text-xl font-semibold text-slate-900">Expert support</h2>
-              <p className="mt-3 text-sm text-slate-500">Need help? Our support team is ready to answer product and order questions.</p>
-            </div>
+            ))}
           </div>
         </div>
-        <div className="rounded-[2rem] bg-gradient-to-br from-slate-900 to-navy p-10 text-white shadow-xl">
-          <div className="text-5xl mb-6 text-center">🏢</div>
-          <h3 className="text-2xl font-semibold">Why choose us</h3>
+        <div className="rounded-[2rem] bg-gradient-to-br from-slate-900 to-navy p-10 text-white shadow-lift">
+          <div className="mb-6 flex justify-center">
+            <span className="inline-flex h-16 w-16 items-center justify-center rounded-3xl bg-white/10"><Building2 size={30} /></span>
+          </div>
+          <h3 className="text-2xl font-semibold text-white">Why choose us</h3>
           <p className="mt-4 text-sm leading-7 text-slate-200">We believe shopping commercial appliances should be easy, affordable, and dependable. Every product is reviewed for performance, energy efficiency, and customer satisfaction.</p>
-          <div className="mt-8 space-y-5 text-sm">
-            <div className="rounded-3xl bg-slate-900/70 p-4 hover:bg-slate-800/70 transition">
-              <strong>✓ Personalized recommendations</strong> based on top categories and trending deals.
-            </div>
-            <div className="rounded-3xl bg-slate-900/70 p-4 hover:bg-slate-800/70 transition">
-              <strong>✓ Buy with confidence</strong> backed by accurate product details and fast support.
-            </div>
-            <div className="rounded-3xl bg-slate-900/70 p-4 hover:bg-slate-800/70 transition">
-              <strong>✓ Order tracking</strong> to keep your purchase visible from checkout to delivery.
-            </div>
+          <div className="mt-8 space-y-4 text-sm">
+            {['Personalized recommendations based on top categories and trending deals.', 'Buy with confidence backed by accurate product details and fast support.', 'Order tracking to keep your purchase visible from checkout to delivery.'].map((item) => (
+              <div key={item} className="flex gap-3 rounded-3xl bg-white/10 p-4 text-slate-200">
+                <Check size={16} className="mt-0.5 shrink-0 text-emerald-300" />
+                <span>{item}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

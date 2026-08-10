@@ -2,9 +2,9 @@
   "users": [
     {
       "id": "e42eb34d-8880-42cf-ba23-646162c614d0",
-      "email": "admin@shraddhasales.com",
+      "email": "sompandey329@gmail.com",
       "name": "Admin",
-      "password_hash": "$2b$12$xUm8bE8VAT.TyCqp062z0O5Z6Qe5DbEDGZDINckEpgzOvkKryJldC",
+      "password_hash": "$2b$12$i01ci/AGdusx7xB1fct3Du5ITGgW7bBGY0mq/4TNg9L5RraXbEWKy",
       "role": "admin",
       "created_at": "2026-07-07T03:33:22.529006+00:00"
     },
@@ -184,7 +184,7 @@
     {
       "id": "site-content",
       "branding": {
-        "site_name": "Shraddha Sales",
+        "site_name": "shradhasales",
         "tagline": "Cooling \u00b7 Kitchen \u00b7 Bakery",
         "company_logo": "",
         "website_logo": "",
@@ -231,7 +231,7 @@
       "customer_reviews": [],
       "contact": {
         "phone": "+91 98765 43210",
-        "email": "support@shraddhasales.com",
+        "email": "support@shradhasales.com",
         "address": "122 Commerce Avenue, Mumbai, India",
         "locations": "Mumbai \u00b7 Delhi \u00b7 Pune",
         "working_hours": "Mon - Sat, 9:00 AM - 7:00 PM"
@@ -245,13 +245,13 @@
       },
       "footer": {
         "description": "Premium appliances for home and commercial cooling, kitchen and bakery solutions.",
-        "copyright": "Shraddha Sales. All rights reserved.",
+        "copyright": "shradhasales. All rights reserved.",
         "shop_links_title": "Shop",
         "customer_links_title": "Customer"
       },
       "coupons": [],
       "seo": {
-        "title": "Shraddha Sales",
+        "title": "shradhasales",
         "description": "Premium appliances for home and commercial cooling, kitchen and bakery solutions.",
         "keywords": "appliances, refrigerators, air conditioners, coolers, bakery equipment"
       },
