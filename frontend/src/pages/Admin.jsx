@@ -10,6 +10,7 @@ import {
   ChevronUp,
   ClipboardList,
   Edit3,
+  Eye,
   Image as ImageIcon,
   Layers,
   Link as LinkIcon,
@@ -25,6 +26,7 @@ import {
   Trash2,
   Upload,
   Users,
+  X,
 } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { api, fmtError, inr } from '../lib/api.js';
@@ -350,6 +352,34 @@ function clientId() {
   return `item-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+const unavailable = (value) => {
+  if (value === 0) return 0;
+  if (value === false) return 'No';
+  return value || 'Not available';
+};
+
+const moneyOrUnavailable = (value) => (value === undefined || value === null || value === '' ? 'Not available' : inr(value));
+
+const formatDateTime = (value) => {
+  if (!value) return { date: 'Not available', time: 'Not available' };
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return { date: 'Not available', time: 'Not available' };
+  return {
+    date: date.toLocaleDateString(),
+    time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  };
+};
+
+const addressLines = (address = {}) => [
+  address.full_name,
+  address.address,
+  [address.city, address.district].filter(Boolean).join(', '),
+  [address.state, address.pin_code || address.zip || address.zip_code].filter(Boolean).join(' - '),
+  address.country,
+  address.landmark && `Landmark: ${address.landmark}`,
+  address.phone && `Phone: ${address.phone}`,
+].filter(Boolean);
+
 export default function Admin() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -365,6 +395,9 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [statusBusy, setStatusBusy] = useState(null);
+  const [orderInfo, setOrderInfo] = useState(null);
+  const [orderInfoLoading, setOrderInfoLoading] = useState(false);
+  const [orderInfoError, setOrderInfoError] = useState('');
   const [productSearch, setProductSearch] = useState('');
   const [productForm, setProductForm] = useState(blankProduct());
   const [categoryForm, setCategoryForm] = useState(blankCategory());
@@ -549,10 +582,25 @@ export default function Admin() {
     try {
       await api.put(`/admin/orders/${orderId}?status=${encodeURIComponent(nextStatus)}`, null, { headers: authHeaders() });
       setOrders((current) => current.map((order) => (order.id === orderId ? { ...order, status: nextStatus } : order)));
+      setOrderInfo((current) => (current?.id === orderId ? { ...current, status: nextStatus } : current));
     } catch (error) {
       toast.error(fmtError(error.response?.data?.detail));
     } finally {
       setStatusBusy(null);
+    }
+  };
+
+  const openOrderInfo = async (orderId) => {
+    setOrderInfo(null);
+    setOrderInfoError('');
+    setOrderInfoLoading(true);
+    try {
+      const response = await api.get(`/admin/orders/${encodeURIComponent(orderId)}`, { headers: authHeaders() });
+      setOrderInfo(response.data);
+    } catch (error) {
+      setOrderInfoError(fmtError(error.response?.data?.detail) || 'Failed to load order');
+    } finally {
+      setOrderInfoLoading(false);
     }
   };
 
@@ -603,7 +651,7 @@ export default function Admin() {
       {loading && <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">Loading admin data...</div>}
 
       {!loading && activeTab === 'overview' && (
-        <OverviewPanel stats={stats} products={products} orders={orders.slice(0, 8)} updateStatus={updateStatus} statusBusy={statusBusy} />
+        <OverviewPanel stats={stats} products={products} orders={orders.slice(0, 8)} updateStatus={updateStatus} statusBusy={statusBusy} onViewOrder={openOrderInfo} />
       )}
 
       {!loading && activeTab === 'products' && (
@@ -653,13 +701,26 @@ export default function Admin() {
       )}
 
       {!loading && activeTab === 'orders' && (
-        <OrdersPanel orders={orders} updateStatus={updateStatus} statusBusy={statusBusy} />
+        <OrdersPanel orders={orders} updateStatus={updateStatus} statusBusy={statusBusy} onViewOrder={openOrderInfo} />
+      )}
+
+      {(orderInfoLoading || orderInfo || orderInfoError) && (
+        <OrderInfoModal
+          order={orderInfo}
+          loading={orderInfoLoading}
+          error={orderInfoError}
+          onClose={() => {
+            setOrderInfo(null);
+            setOrderInfoError('');
+            setOrderInfoLoading(false);
+          }}
+        />
       )}
     </div>
   );
 }
 
-function OverviewPanel({ stats, products, orders, updateStatus, statusBusy }) {
+function OverviewPanel({ stats, products, orders, updateStatus, statusBusy, onViewOrder }) {
   const lowStock = products.filter((product) => Number(product.stock || 0) <= 5).slice(0, 8);
   return (
     <>
@@ -722,7 +783,7 @@ function OverviewPanel({ stats, products, orders, updateStatus, statusBusy }) {
           <h2 className="text-xl font-semibold text-slate-900">Recent orders</h2>
           <span className="text-sm text-slate-500">Latest 8 orders</span>
         </div>
-        <OrdersTable orders={orders} updateStatus={updateStatus} statusBusy={statusBusy} />
+        <OrdersTable orders={orders} updateStatus={updateStatus} statusBusy={statusBusy} onViewOrder={onViewOrder} />
       </div>
     </>
   );
@@ -1087,7 +1148,7 @@ function MediaPanel({ media, uploadFile, deleteMedia }) {
   );
 }
 
-function OrdersPanel({ orders, updateStatus, statusBusy }) {
+function OrdersPanel({ orders, updateStatus, statusBusy, onViewOrder }) {
   return (
     <div className="mt-8 section-panel p-6">
       <div className="flex items-center justify-between gap-4">
@@ -1096,12 +1157,12 @@ function OrdersPanel({ orders, updateStatus, statusBusy }) {
           <p className="mt-1 text-sm text-slate-500">Update order status and review customer details.</p>
         </div>
       </div>
-      <OrdersTable orders={orders} updateStatus={updateStatus} statusBusy={statusBusy} />
+      <OrdersTable orders={orders} updateStatus={updateStatus} statusBusy={statusBusy} onViewOrder={onViewOrder} />
     </div>
   );
 }
 
-function OrdersTable({ orders, updateStatus, statusBusy }) {
+function OrdersTable({ orders, updateStatus, statusBusy, onViewOrder }) {
   return (
     <div className="mt-6 overflow-x-auto">
       <table className="min-w-full text-left text-sm text-slate-700">
@@ -1125,9 +1186,12 @@ function OrdersTable({ orders, updateStatus, statusBusy }) {
                 <td className="px-4 py-4">{inr(order.total)}</td>
                 <td className="px-4 py-4"><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{order.status}</span></td>
                 <td className="px-4 py-4">
-                  <Select value={order.status} onChange={(event) => updateStatus(order.id, event.target.value)} disabled={statusBusy === order.id}>
-                    {['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'].map((status) => <option key={status} value={status}>{status}</option>)}
-                  </Select>
+                  <div className="flex min-w-[250px] flex-col gap-2 sm:flex-row">
+                    <Button size="sm" variant="outline" onClick={() => onViewOrder(order.id)}><Eye size={14} />Order Info</Button>
+                    <Select value={order.status} onChange={(event) => updateStatus(order.id, event.target.value)} disabled={statusBusy === order.id}>
+                      {['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'].map((status) => <option key={status} value={status}>{status}</option>)}
+                    </Select>
+                  </div>
                 </td>
               </tr>
             ))
@@ -1135,6 +1199,170 @@ function OrdersTable({ orders, updateStatus, statusBusy }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+function OrderInfoModal({ order, loading, error, onClose }) {
+  const placed = formatDateTime(order?.created_at);
+  const shippingLines = addressLines(order?.address);
+  const billing = order?.billing_address || order?.billingAddress;
+  const billingLines = addressLines(billing);
+  const customer = order?.customer || {};
+  const customerName = customer.name || order?.address?.full_name;
+  const customerEmail = customer.email || order?.address?.email;
+  const customerPhone = order?.address?.phone || customer.phone;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 px-4 py-8">
+      <div className="w-full max-w-5xl rounded-3xl border border-slate-200 bg-white shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-6">
+          <div>
+            <p className="section-eyebrow">Order Info</p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-900">{order?.id ? `#${order.id.slice(0, 8).toUpperCase()}` : 'Order details'}</h2>
+            <p className="mt-1 text-sm text-slate-500">Complete stored information for this order.</p>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-2xl border border-slate-200 bg-white p-2 text-slate-600 hover:text-slate-900">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="p-6">
+          {loading && <div className="rounded-3xl bg-slate-50 p-8 text-center text-sm text-slate-500">Loading order details...</div>}
+          {!loading && error && <div className="rounded-3xl bg-red-50 p-8 text-center text-sm font-semibold text-red-700">{error}</div>}
+          {!loading && !error && order && (
+            <div className="space-y-6">
+              <div className="grid gap-4 lg:grid-cols-2">
+                <DetailSection title="Order Information">
+                  <DetailGrid items={[
+                    ['Order ID', order.id],
+                    ['Order date', placed.date],
+                    ['Order time', placed.time],
+                    ['Current status', order.status],
+                    ['Payment status', order.payment_status],
+                    ['Payment method', order.payment_method],
+                    ['Transaction/payment ID', order.transaction_id || order.payment_id],
+                    ['Subtotal', moneyOrUnavailable(order.subtotal)],
+                    ['Discount', order.discount === undefined ? 'Not available' : inr(order.discount)],
+                    ['Coupon code', order.coupon_code],
+                    ['Shipping/delivery charge', moneyOrUnavailable(order.shipping)],
+                    ['Tax/GST', moneyOrUnavailable(order.gst || order.tax)],
+                    ['Final order total', moneyOrUnavailable(order.total)],
+                    ['Currency', order.currency || 'INR'],
+                  ]} />
+                </DetailSection>
+
+                <DetailSection title="Customer Information">
+                  <DetailGrid items={[
+                    ['Customer name', customerName],
+                    ['Email', customerEmail],
+                    ['Phone number', customerPhone],
+                    ['Alternate phone number', order.address?.alternate_phone || customer.alternate_phone],
+                    ['Customer/account ID', order.user_id || customer.id],
+                  ]} />
+                </DetailSection>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <AddressBlock title="Shipping Address" lines={shippingLines} />
+                {billing ? <AddressBlock title="Billing Address" lines={billingLines} /> : <AddressBlock title="Billing Address" lines={['Same as shipping address']} />}
+              </div>
+
+              <DetailSection title="Ordered Products">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-left text-sm text-slate-700">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-slate-500">
+                        <th className="px-3 py-3">Product</th>
+                        <th className="px-3 py-3">ID/SKU</th>
+                        <th className="px-3 py-3">Qty</th>
+                        <th className="px-3 py-3">Unit price</th>
+                        <th className="px-3 py-3">Discount</th>
+                        <th className="px-3 py-3">Tax/GST</th>
+                        <th className="px-3 py-3">Line total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(order.items || []).map((item, index) => (
+                        <tr key={`${item.product_id || item.name}-${index}`} className="border-b border-slate-200 last:border-b-0">
+                          <td className="px-3 py-4">
+                            <div className="flex items-center gap-3">
+                              {item.image ? <img src={item.image} alt={item.name || 'Product'} className="h-12 w-12 rounded-2xl bg-slate-50 object-contain p-1" /> : <div className="grid h-12 w-12 place-items-center rounded-2xl bg-slate-50 text-xs text-slate-400">No image</div>}
+                              <div>
+                                <div className="font-semibold text-slate-900">{unavailable(item.name)}</div>
+                                <div className="text-xs text-slate-500">{unavailable(item.variant || item.specification)}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3 py-4">{unavailable(item.sku || item.product_id)}</td>
+                          <td className="px-3 py-4">{unavailable(item.quantity)}</td>
+                          <td className="px-3 py-4">{moneyOrUnavailable(item.price)}</td>
+                          <td className="px-3 py-4">{item.discount === undefined ? 'Not available' : inr(item.discount)}</td>
+                          <td className="px-3 py-4">{item.gst === undefined && item.tax === undefined ? 'Not available' : inr(item.gst || item.tax)}</td>
+                          <td className="px-3 py-4 font-semibold text-slate-900">{moneyOrUnavailable(item.line_total)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {(order.items || []).length === 0 && <div className="rounded-3xl bg-slate-50 p-6 text-center text-sm text-slate-500">No ordered products found.</div>}
+                </div>
+              </DetailSection>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <DetailSection title="Order Status">
+                  <div className="inline-flex rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">{unavailable(order.status)}</div>
+                </DetailSection>
+                <DetailSection title="Order Timeline">
+                  {order.created_at ? (
+                    <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
+                      <span className="font-semibold text-slate-900">Order placed</span>
+                      <span className="ml-2 text-slate-500">{placed.date} {placed.time}</span>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">No timeline events available.</div>
+                  )}
+                </DetailSection>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DetailSection({ title, children }) {
+  return (
+    <section className="rounded-3xl border border-slate-200 bg-white p-5">
+      <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+function DetailGrid({ items }) {
+  return (
+    <div className="grid gap-3">
+      {items.map(([label, value]) => (
+        <div key={label} className="flex flex-col gap-1 rounded-2xl bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-xs font-semibold uppercase text-slate-500">{label}</span>
+          <span className="text-sm font-semibold text-slate-900 sm:text-right">{unavailable(value)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AddressBlock({ title, lines }) {
+  return (
+    <DetailSection title={title}>
+      {lines.length ? (
+        <div className="space-y-2 text-sm text-slate-700">
+          {lines.map((line, index) => <p key={`${line}-${index}`}>{line}</p>)}
+        </div>
+      ) : (
+        <p className="text-sm text-slate-500">Not available</p>
+      )}
+    </DetailSection>
   );
 }
 

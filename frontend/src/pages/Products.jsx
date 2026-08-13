@@ -15,6 +15,7 @@ export default function Products() {
   const [subcategories, setSubcategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchCorrection, setSearchCorrection] = useState('');
 
   const q = searchParams.get('q') || '';
   const category = searchParams.get('category') || '';
@@ -37,8 +38,14 @@ export default function Products() {
     if (brand) params.set('brand', brand);
     if (badge) params.set('badge', badge);
     api.get(`/products?${params.toString()}`)
-      .then((res) => setProducts(res.data))
-      .catch(() => setProducts([]))
+      .then((res) => {
+        setProducts(res.data);
+        setSearchCorrection(res.headers.get('x-search-correction') || '');
+      })
+      .catch(() => {
+        setProducts([]);
+        setSearchCorrection('');
+      })
       .finally(() => setLoading(false));
   }, [q, category, subcategory, brand, badge]);
 
@@ -104,10 +111,15 @@ export default function Products() {
           </FilterSection>
         </aside>
         <section>
+          {!loading && q && searchCorrection && products.length > 0 && (
+            <div className="mb-5 rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600">
+              Showing results for <span className="font-semibold text-slate-900">{searchCorrection}</span>
+            </div>
+          )}
           {loading ? (
             <ProductGridSkeleton />
           ) : products.length === 0 ? (
-            <EmptyState title="No products found" message="Try clearing a filter or searching a broader appliance name, brand, or model." actionLabel="Clear filters" onAction={() => setSearchParams(new URLSearchParams())} />
+            <EmptyState title={q ? `No products found for "${q}"` : 'No products found'} message="Try clearing a filter or searching a broader appliance name, brand, or model." actionLabel="Clear filters" onAction={() => setSearchParams(new URLSearchParams())} />
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{products.map((product) => <ProductCard key={product.id} product={product} />)}</div>
           )}

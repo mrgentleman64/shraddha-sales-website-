@@ -5,8 +5,9 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, EmailStr
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Any, Dict, Set, Tuple
 from datetime import datetime, timezone, timedelta
+from difflib import SequenceMatcher
 import os
 import uuid
 import logging
@@ -139,6 +140,291 @@ def strip_doc(doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     doc.pop('_id', None)
     doc.pop('password_hash', None)
     return doc
+
+
+SEARCH_SYNONYM_GROUPS = [
+    {'phone', 'mobile', 'smartphone', 'smart phone', 'cell phone', 'handset', 'android phone'},
+    {'refrigerator', 'fridge', 'frig'},
+    {'air conditioner', 'air conditioning', 'ac', 'a c', 'aircon', 'air con'},
+    {'water cooler', 'drinking water cooler', 'water cooling machine'},
+    {'visi cooler', 'display cooler', 'glass door cooler'},
+    {'television', 'tv', 'smart tv'},
+    {'computer', 'pc', 'desktop'},
+    {'laptop', 'notebook'},
+    {'freezer', 'deep freezer'},
+    {'litre', 'liter', 'ltr', 'l'},
+    {'ton', 'tonne'},
+    {'stainless steel', 'ss'},
+]
+
+SEARCH_MISSPELLINGS = {
+    'refridgerator': 'refrigerator',
+    'refrigrator': 'refrigerator',
+    'refrigirator': 'refrigerator',
+    'refregerator': 'refrigerator',
+    'frige': 'fridge',
+    'aircondtioner': 'air conditioner',
+    'airconditioner': 'air conditioner',
+    'condtioner': 'conditioner',
+}
+
+GENERIC_SEARCH_TERMS = {'litre', 'liter', 'ltr', 'l', 'ton', 'tonne'}
+ATTRIBUTE_PHRASES = {
+    'double door',
+    'single door',
+    'side by side',
+    'frost free',
+    'split',
+    'window',
+    'inverter',
+    'stainless steel',
+    'ss',
+}
+
+
+def normalize_search_text(value: Any) -> str:
+    text = str(value or '').lower()
+    text = re.sub(r'\ba\s*\.\s*c\s*\.?\b', ' ac ', text)
+    text = re.sub(r'(\d+(?:\.\d+)?)\s*(litres?|liters?|ltrs?|l)\b', r'\1 litre', text)
+    text = re.sub(r'(\d+(?:\.\d+)?)\s*(tons?|tonnes?)\b', r'\1 ton', text)
+    text = text.replace('&', ' and ')
+    text = re.sub(r'[^a-z0-9.]+', ' ', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+
+def search_tokens(value: Any) -> List[str]:
+    tokens = normalize_search_text(value).split()
+    normalized = []
+    for token in tokens:
+        if len(token) > 3 and token.endswith('ies'):
+            token = f'{token[:-3]}y'
+        elif len(token) > 3 and token.endswith('s') and not token.endswith('ss'):
+            token = token[:-1]
+        normalized.append(SEARCH_MISSPELLINGS.get(token, token))
+    return normalized
+
+
+def search_phrases(value: Any) -> Set[str]:
+    normalized = normalize_search_text(value)
+    tokens = search_tokens(value)
+    phrases = {normalized, ' '.join(tokens)}
+    for token in tokens:
+        phrases.add(token)
+    for size in (2, 3):
+        for index in range(len(tokens) - size + 1):
+            phrases.add(' '.join(tokens[index:index + size]))
+    return {phrase for phrase in phrases if phrase}
+
+
+def synonym_lookup() -> Dict[str, Set[str]]:
+    lookup: Dict[str, Set[str]] = {}
+    for group in SEARCH_SYNONYM_GROUPS:
+        expanded = {normalize_search_text(item) for item in group}
+        for item in expanded:
+            lookup.setdefault(item, set()).update(expanded - {item})
+    return lookup
+
+
+SEARCH_SYNONYMS = synonym_lookup()
+
+
+def expanded_query_terms(q: str) -> Tuple[Set[str], Set[str], str]:
+    corrected_tokens = [SEARCH_MISSPELLINGS.get(token, token) for token in search_tokens(q)]
+    corrected = ' '.join(corrected_tokens)
+    terms = set(corrected_tokens) | search_phrases(q) | search_phrases(corrected)
+    synonyms: Set[str] = set()
+    for term in list(terms):
+        synonyms.update(SEARCH_SYNONYMS.get(term, set()))
+    terms.update(synonyms)
+    return terms, synonyms, corrected
+
+
+def product_search_fields(product: Dict[str, Any]) -> Dict[str, str]:
+    specs = product.get('specifications') or {}
+    spec_text = ' '.join(f'{key} {value}' for key, value in specs.items())
+    highlights = ' '.join(product.get('highlights') or [])
+    tags = ' '.join(product.get('tags') or product.get('badges') or [])
+    return {
+        'name': normalize_search_text(product.get('name')),
+        'brand': normalize_search_text((product.get('brand') or {}).get('name')),
+        'category': normalize_search_text((product.get('category') or {}).get('name')),
+        'subcategory': normalize_search_text((product.get('subcategory') or {}).get('name')),
+        'model': normalize_search_text(f"{product.get('model_number', '')} {product.get('sku', '')}"),
+        'attributes': normalize_search_text(f'{highlights} {spec_text} {tags}'),
+        'description': normalize_search_text(product.get('description')),
+    }
+
+
+def query_contains_phrase(query: str, phrase: str) -> bool:
+    return f' {phrase} ' in f' {query} '
+
+
+def extract_capacity_terms(query: str) -> List[Tuple[float, str]]:
+    capacities = []
+    for match in re.finditer(r'\b(\d+(?:\.\d+)?)\s*(litre|ton)\b', query):
+        capacities.append((float(match.group(1)), match.group(2)))
+    return capacities
+
+
+def extract_attribute_phrases(query: str) -> Set[str]:
+    phrases = {phrase for phrase in ATTRIBUTE_PHRASES if query_contains_phrase(query, phrase)}
+    star = re.search(r'\b([1-5])\s*star\b', query)
+    if star:
+        phrases.add(f'{star.group(1)} star')
+    return phrases
+
+
+def product_capacity_matches(fields: Dict[str, str], amount: float, unit: str) -> bool:
+    haystack = f"{fields['name']} {fields['attributes']}"
+    for match in re.finditer(r'\b(\d+(?:\.\d+)?)\s*(litre|ton)\b', haystack):
+        product_amount = float(match.group(1))
+        product_unit = match.group(2)
+        if product_unit != unit:
+            continue
+        tolerance = max(5.0, amount * 0.08) if unit == 'litre' else 0.15
+        if abs(product_amount - amount) <= tolerance:
+            return True
+    return False
+
+
+def attribute_score(fields: Dict[str, str], query: str) -> Tuple[int, int, int]:
+    haystack = f"{fields['name']} {fields['attributes']} {fields['category']} {fields['subcategory']}"
+    score = 0
+    requested = 0
+    matched = 0
+    for phrase in extract_attribute_phrases(query):
+        requested += 1
+        if query_contains_phrase(haystack, phrase):
+            matched += 1
+            score += 95
+    for amount, unit in extract_capacity_terms(query):
+        requested += 1
+        if product_capacity_matches(fields, amount, unit):
+            matched += 1
+            score += 110
+    return score, requested, matched
+
+
+def fuzzy_ratio(a: str, b: str) -> float:
+    if not a or not b:
+        return 0.0
+    return SequenceMatcher(None, a, b).ratio()
+
+
+def term_match_score(term: str, fields: Dict[str, str]) -> int:
+    if not term:
+        return 0
+    weights = {
+        'name': 90,
+        'brand': 85,
+        'model': 82,
+        'category': 70,
+        'subcategory': 65,
+        'attributes': 45,
+        'description': 22,
+    }
+    score = 0
+    for field, text in fields.items():
+        if not text:
+            continue
+        weight = weights[field]
+        words = text.split()
+        if term == text:
+            score = max(score, weight + 80)
+        elif f' {term} ' in f' {text} ':
+            score = max(score, weight)
+        elif len(term) >= 3 and any(word.startswith(term) for word in words):
+            score = max(score, weight - 8)
+        elif len(term) >= 4 and term in text:
+            score = max(score, weight - 18)
+        elif len(term) >= 5 and any(fuzzy_ratio(term, word) >= 0.84 for word in words):
+            score = max(score, weight - 30)
+    return max(score, 0)
+
+
+def rank_products_for_search(products: List[Dict[str, Any]], q: str, catalog_brand_names: Optional[Set[str]] = None) -> Tuple[List[Dict[str, Any]], Optional[str]]:
+    query = normalize_search_text(q)
+    query_terms, synonym_terms, corrected = expanded_query_terms(q)
+    product_brands = {product_search_fields(product)['brand'] for product in products if product_search_fields(product)['brand']}
+    catalog_brands = catalog_brand_names or product_brands
+    query_brands = {brand for brand in catalog_brands if query_contains_phrase(query, brand)}
+    ranked = []
+    any_direct = False
+    for product in products:
+        fields = product_search_fields(product)
+        if query_brands and fields['brand'] not in query_brands:
+            continue
+        all_text = ' '.join(fields.values())
+        name = fields['name']
+        score = 0
+        if query and query == name:
+            score += 1000
+            any_direct = True
+        elif query and query in name:
+            score += 460
+            any_direct = True
+        elif query and query in all_text:
+            score += 240
+            any_direct = True
+        attr_points, attr_requested, attr_matched = attribute_score(fields, query)
+        score += attr_points
+        matched_terms = 0
+        direct_terms = set(search_tokens(q))
+        meaningful_terms = {term for term in direct_terms if term not in GENERIC_SEARCH_TERMS and not re.fullmatch(r'\d+(?:\.\d+)?', term)}
+        meaningful_matched = 0
+        for term in query_terms:
+            term_score = term_match_score(term, fields)
+            if term_score:
+                matched_terms += 1
+                if term in meaningful_terms or any(term in SEARCH_SYNONYMS.get(direct_term, set()) for direct_term in meaningful_terms):
+                    meaningful_matched += 1
+                if term in synonym_terms and term not in direct_terms:
+                    term_score = max(12, term_score - 18)
+                score += term_score
+        if direct_terms:
+            direct_matched = sum(1 for term in direct_terms if term_match_score(term, fields))
+            score += int((direct_matched / len(direct_terms)) * 120)
+        if attr_requested and attr_matched == 0:
+            score -= 45
+        if score >= 45 and matched_terms and (not meaningful_terms or meaningful_matched > 0 or (query and query in name)):
+            ranked.append((score, product))
+    ranked.sort(key=lambda item: (-item[0], item[1].get('name', '')))
+
+    correction = None
+    if corrected and corrected != query and ranked and not any_direct:
+        correction = corrected
+    return [product for _, product in ranked], correction
+
+
+def suggestion_score(text: str, q: str) -> int:
+    if not q:
+        return 0
+    if text == q:
+        return 100
+    if text.startswith(q):
+        return 85
+    if f' {q}' in text:
+        return 70
+    if q in text:
+        return 55
+    if len(q) >= 4 and any(fuzzy_ratio(q, word) >= 0.84 for word in text.split()):
+        return 40
+    return 0
+
+
+def unique_suggestions(values: List[Tuple[int, str]], limit: int = 8) -> List[str]:
+    seen = set()
+    output = []
+    for _score, value in sorted(values, key=lambda item: (-item[0], item[1])):
+        key = normalize_search_text(value)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        output.append(value)
+        if len(output) >= limit:
+            break
+    return output
 
 
 DEFAULT_SITE_CONTENT: Dict[str, Any] = {
@@ -543,6 +829,7 @@ async def hydrate_product(p: Dict[str, Any]) -> Dict[str, Any]:
 
 @api.get('/products')
 async def list_products(
+    response: Response,
     q: Optional[str] = None,
     category: Optional[str] = None,
     subcategory: Optional[str] = None,
@@ -568,24 +855,73 @@ async def list_products(
         if max_price is not None:
             pr['$lte'] = max_price
         query['price'] = pr
-    if q:
-        regex = {'$regex': q, '$options': 'i'}
-        query['$or'] = [
-            {'name': regex},
-            {'model_number': regex},
-            {'description': regex},
-            {'highlights': regex},
-        ]
-    items = await db.products.find(query, {'_id': 0}).limit(limit).to_list(limit)
     brands = {b['id']: b for b in await db.brands.find({}, {'_id': 0}).to_list(1000)}
     cats = {c['id']: c for c in await db.categories.find({}, {'_id': 0}).to_list(1000)}
     subcats = {s['id']: s for s in await db.subcategories.find({}, {'_id': 0}).to_list(1000)}
+    fetch_limit = 1000 if q else limit
+    items = await db.products.find(query, {'_id': 0}).limit(fetch_limit).to_list(fetch_limit)
     for p in items:
         normalize_badges(p)
         p['brand'] = brands.get(p.get('brand_id'))
         p['category'] = cats.get(p.get('category_id'))
         p['subcategory'] = subcats.get(p.get('subcategory_id'))
+    if q:
+        catalog_brand_names = {normalize_search_text(brand_doc.get('name')) for brand_doc in brands.values() if brand_doc.get('name')}
+        items, correction = rank_products_for_search(items, q, catalog_brand_names)
+        if correction:
+            response.headers['X-Search-Correction'] = correction
+        items = items[:limit]
     return items
+
+
+@api.get('/search/suggestions')
+async def search_suggestions(q: str = Query(...), limit: int = 8):
+    query = normalize_search_text(q)
+    if len(query) < 2:
+        return []
+    products = await db.products.find({'visible': True}, {'_id': 0}).limit(500).to_list(500)
+    brands = {b['id']: b for b in await db.brands.find({'visible': True}, {'_id': 0}).to_list(1000)}
+    cats = {c['id']: c for c in await db.categories.find({'visible': True}, {'_id': 0}).to_list(1000)}
+    subcats = {s['id']: s for s in await db.subcategories.find({'visible': True}, {'_id': 0}).to_list(1000)}
+    values: List[Tuple[int, str]] = []
+    catalog_terms = set()
+
+    for category_doc in cats.values():
+        catalog_terms.add(category_doc.get('name', ''))
+    for subcategory_doc in subcats.values():
+        catalog_terms.add(subcategory_doc.get('name', ''))
+    for brand_doc in brands.values():
+        catalog_terms.add(brand_doc.get('name', ''))
+    for product in products:
+        brand_doc = brands.get(product.get('brand_id')) or {}
+        category_doc = cats.get(product.get('category_id')) or {}
+        subcategory_doc = subcats.get(product.get('subcategory_id')) or {}
+        catalog_terms.update([
+            product.get('name', ''),
+            product.get('model_number', ''),
+            product.get('sku', ''),
+            f"{brand_doc.get('name', '')} {category_doc.get('name', '')}".strip(),
+            f"{brand_doc.get('name', '')} {product.get('name', '')}".strip(),
+            category_doc.get('name', ''),
+            subcategory_doc.get('name', ''),
+        ])
+        for highlight in product.get('highlights') or []:
+            catalog_terms.add(highlight)
+        for key, value in (product.get('specifications') or {}).items():
+            catalog_terms.add(f'{value} {category_doc.get("name", "")}'.strip())
+            catalog_terms.add(str(value))
+
+    normalized_catalog = {normalize_search_text(term) for term in catalog_terms if term}
+    for term in list(normalized_catalog):
+        for synonym in SEARCH_SYNONYMS.get(term, set()):
+            if any(synonym in catalog_term or catalog_term in synonym for catalog_term in normalized_catalog):
+                catalog_terms.add(synonym.title() if len(synonym) > 3 else synonym.upper())
+
+    for term in catalog_terms:
+        score = suggestion_score(normalize_search_text(term), query)
+        if score:
+            values.append((score, str(term)))
+    return unique_suggestions(values, limit)
 
 
 @api.get('/products/{pid}')
@@ -727,6 +1063,19 @@ async def my_orders(user=Depends(require_user)):
 @api.get('/admin/orders')
 async def admin_orders(_=Depends(require_admin)):
     return await db.orders.find({}, {'_id': 0}).sort('created_at', -1).to_list(500)
+
+
+@api.get('/admin/orders/{oid}')
+async def admin_order_detail(oid: str, _=Depends(require_admin)):
+    order_id = oid.strip()
+    if not order_id:
+        raise HTTPException(status_code=400, detail='Invalid order ID')
+    order = await db.orders.find_one({'id': order_id}, {'_id': 0})
+    if not order:
+        raise HTTPException(status_code=404, detail='Order not found')
+    customer = await db.users.find_one({'id': order.get('user_id')})
+    order['customer'] = strip_doc(customer) if customer else None
+    return order
 
 
 @api.put('/admin/orders/{oid}')
@@ -899,6 +1248,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],
+    expose_headers=['X-Search-Correction'],
 )
 
 SEED_CATEGORIES = [

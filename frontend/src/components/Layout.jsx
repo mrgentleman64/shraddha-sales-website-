@@ -20,6 +20,8 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const { count } = useCart();
   const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [siteContent, setSiteContent] = useState(null);
   const navigate = useNavigate();
@@ -40,10 +42,33 @@ export default function Layout() {
     };
   }, []);
 
+  useEffect(() => {
+    const search = query.trim();
+    if (search.length < 2) {
+      setSuggestions([]);
+      return undefined;
+    }
+    const timer = window.setTimeout(() => {
+      api.get(`/search/suggestions?q=${encodeURIComponent(search)}`)
+        .then((res) => setSuggestions(res.data || []))
+        .catch(() => setSuggestions([]));
+    }, 180);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
   const handleSearch = (event) => {
     event.preventDefault();
     if (!query.trim()) return;
     navigate(`/products?q=${encodeURIComponent(query.trim())}`);
+    setShowSuggestions(false);
+    setMobileOpen(false);
+  };
+
+  const selectSuggestion = (value) => {
+    setQuery(value);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    navigate(`/products?q=${encodeURIComponent(value)}`);
     setMobileOpen(false);
   };
 
@@ -75,12 +100,18 @@ export default function Layout() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => window.setTimeout(() => setShowSuggestions(false), 120)}
               className="w-full rounded-full border border-slate-200 bg-slate-50/90 py-3 pl-11 pr-28 text-sm outline-none transition focus:border-navy focus:bg-white focus:ring-4 focus:ring-blue-100"
               placeholder="Search appliances, brands, models..."
               aria-label="Search products"
             />
             <button type="submit" className="interactive-lift absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-navy px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-950">Search</button>
+            <SearchSuggestions visible={showSuggestions} suggestions={suggestions} onSelect={selectSuggestion} />
           </form>
           <div className="flex items-center gap-2">
             <button className="rounded-xl bg-slate-100 p-2 transition hover:bg-slate-200 md:hidden" onClick={() => setMobileOpen((value) => !value)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen}>
@@ -116,11 +147,17 @@ export default function Layout() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => window.setTimeout(() => setShowSuggestions(false), 120)}
                 className="w-full rounded-full border border-slate-300 bg-slate-50 py-3 pl-11 pr-4 text-sm outline-none"
                 placeholder="Search appliances..."
                 aria-label="Search products"
               />
+              <SearchSuggestions visible={showSuggestions} suggestions={suggestions} onSelect={selectSuggestion} />
             </form>
             <div className="grid gap-3">
               {navItems.map((item) => (
@@ -178,6 +215,28 @@ export default function Layout() {
         </div>
         <div className="border-t border-slate-800 py-4 text-center text-xs text-slate-400">© {new Date().getFullYear()} {content.footer.copyright}</div>
       </footer>
+    </div>
+  );
+}
+
+function SearchSuggestions({ visible, suggestions, onSelect }) {
+  if (!visible || suggestions.length === 0) return null;
+  return (
+    <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white py-2 shadow-xl">
+      {suggestions.map((suggestion) => (
+        <button
+          key={suggestion}
+          type="button"
+          onMouseDown={(event) => {
+            event.preventDefault();
+            onSelect(suggestion);
+          }}
+          className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 hover:text-navy"
+        >
+          <Search size={15} className="text-slate-400" />
+          <span className="truncate">{suggestion}</span>
+        </button>
+      ))}
     </div>
   );
 }
