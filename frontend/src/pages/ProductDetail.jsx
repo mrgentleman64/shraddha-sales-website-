@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import ProductCard from '../components/ProductCard.jsx';
 import ZoomableImage from '../components/ui/ZoomableImage.jsx';
 import LazyImage from '../components/ui/LazyImage.jsx';
-import SEO, { breadcrumbSchema } from '../components/SEO.jsx';
+import SEO, { absoluteUrl, breadcrumbSchema, cleanSchema } from '../components/SEO.jsx';
 import { Badge } from '../components/ui/badge.jsx';
 import { Skeleton } from '../components/ui/skeleton.jsx';
 import { Breadcrumbs } from '../components/ui/breadcrumbs.jsx';
@@ -56,33 +56,56 @@ export default function ProductDetail() {
     return <div className="container mx-auto px-4 py-16"><Skeleton className="h-[520px] w-full rounded-[2rem]" /></div>;
   }
 
+  const productUrl = `/product/${product.id}`;
+  const productBreadcrumbs = [
+    { name: 'Home', path: '/' },
+    { name: 'Products', path: '/products' },
+    product.category && { name: product.category.name, path: `/products?category=${product.category.id}` },
+    product.subcategory && { name: product.subcategory.name, path: `/products?subcategory=${product.subcategory.id}` },
+    { name: product.name, path: productUrl },
+  ].filter(Boolean);
+  const productSchema = cleanSchema({
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.description,
+    image: (product.images || []).map(absoluteUrl),
+    url: absoluteUrl(productUrl),
+    sku: product.sku || product.model_number,
+    mpn: product.model_number,
+    brand: product.brand?.name ? { '@type': 'Brand', name: product.brand.name } : undefined,
+    category: product.category?.name,
+    offers: product.price !== undefined ? {
+      '@type': 'Offer',
+      priceCurrency: 'INR',
+      price: product.price,
+      availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      url: absoluteUrl(productUrl),
+      itemCondition: 'https://schema.org/NewCondition',
+      seller: {
+        '@type': 'Organization',
+        name: 'Shraddha Sales',
+      },
+    } : undefined,
+  });
+
   return (
     <div className="page-shell container mx-auto px-4 py-10">
       <SEO
-        title={product.name}
+        title={`${product.name}${product.category?.name ? ` | ${product.category.name}` : ''}`}
         description={product.description || `${product.name} from shradhasales with trusted delivery and checkout.`}
         image={product.images?.[0]}
         type="product"
-        schema={[
-          breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Products', path: '/products' }, { name: product.name, path: `/product/${product.id}` }]),
-          {
-            '@context': 'https://schema.org',
-            '@type': 'Product',
-            name: product.name,
-            image: product.images || [],
-            description: product.description,
-            sku: product.model_number,
-            brand: { '@type': 'Brand', name: product.brand?.name },
-            offers: {
-              '@type': 'Offer',
-              priceCurrency: 'INR',
-              price: product.price,
-              availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-            },
-          },
-        ]}
+        canonicalPath={productUrl}
+        schema={[breadcrumbSchema(productBreadcrumbs), productSchema]}
       />
-      <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Products', to: '/products' }, { label: product.name }]} />
+      <Breadcrumbs items={[
+        { label: 'Home', to: '/' },
+        { label: 'Products', to: '/products' },
+        product.category && { label: product.category.name, to: `/products?category=${product.category.id}` },
+        product.subcategory && { label: product.subcategory.name, to: `/products?subcategory=${product.subcategory.id}` },
+        { label: product.name },
+      ].filter(Boolean)} />
       <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
         <div>
           <div className="section-panel p-6">

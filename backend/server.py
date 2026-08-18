@@ -4,10 +4,12 @@ from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Respons
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+from bson import ObjectId
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Any, Dict, Set, Tuple
 from datetime import datetime, timezone, timedelta
 from difflib import SequenceMatcher
+from html import escape as xml_escape
 import os
 import uuid
 import logging
@@ -15,6 +17,7 @@ import bcrypt
 import jwt
 import re
 import importlib.util
+from urllib.parse import urlencode
 from local_store import LocalDatabase
 
 ROOT_DIR = Path(__file__).parent
@@ -54,6 +57,7 @@ def get_cors_origins() -> List[str]:
 
 CORS_ORIGINS = get_cors_origins()
 CORS_ORIGIN_REGEX = os.environ.get('CORS_ORIGIN_REGEX', r'https://[a-z0-9-]+\.vercel\.app|http://localhost:\d+')
+PUBLIC_SITE_URL = os.environ.get('PUBLIC_SITE_URL', 'https://shradhasales.vercel.app').rstrip('/')
 
 
 def jwt_secret() -> str:
@@ -134,12 +138,50 @@ def create_token(user_id: str, email: str, role: str, days: int = 7) -> str:
     return jwt.encode(payload, jwt_secret(), algorithm=JWT_ALGO)
 
 
-def strip_doc(doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+def mongo_safe(value: Any) -> Any:
+    if isinstance(value, ObjectId):
+        return str(value)
+    if isinstance(value, list):
+        return [mongo_safe(item) for item in value]
+    if isinstance(value, dict):
+        safe = {}
+        for key, item in value.items():
+            if key == '_id':
+                continue
+            safe[key] = mongo_safe(item)
+        return safe
+    return value
+
+
+def mongo_doc(doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     if not doc:
         return None
-    doc.pop('_id', None)
-    doc.pop('password_hash', None)
-    return doc
+    return mongo_safe(doc)
+
+
+def strip_doc(doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    safe = mongo_doc(doc)
+    if not safe:
+        return None
+    safe.pop('password_hash', None)
+    return safe
+
+
+def public_url(path: str = '/', params: Optional[Dict[str, str]] = None) -> str:
+    suffix = path if path.startswith('/') else f'/{path}'
+    if params:
+        suffix = f'{suffix}?{urlencode(params)}'
+    return f'{PUBLIC_SITE_URL}{suffix}'
+
+
+def xml_url(loc: str, lastmod: Optional[str] = None, priority: Optional[str] = None) -> str:
+    parts = ['  <url>', f'    <loc>{xml_escape(loc)}</loc>']
+    if lastmod:
+        parts.append(f'    <lastmod>{xml_escape(str(lastmod)[:10])}</lastmod>')
+    if priority:
+        parts.append(f'    <priority>{priority}</priority>')
+    parts.append('  </url>')
+    return '\n'.join(parts)
 
 
 SEARCH_SYNONYM_GROUPS = [
@@ -697,17 +739,66 @@ async def me(user=Depends(require_user)):
 @api.get('/content')
 async def get_content():
     doc = await db.site_content.find_one({'id': 'site-content'}, {'_id': 0})
-    return merge_site_content(doc)
+    return mongo_safe(merge_site_content(doc))
+
+
+@api.get('/sitemap.xml')
+async def sitemap_xml():
+    categories = await db.categories.find({'visible': True}, {'_id': 0}).sort('order', 1).to_list(1000)
+    subcategories = await db.subcategories.find({'visible': True}, {'_id': 0}).sort('order', 1).to_list(1000)
+    brands = await db.brands.find({'visible': True}, {'_id': 0}).to_list(1000)
+    products = await db.products.find({'visible': True}, {'_id': 0}).to_list(5000)
+
+    visible_category_ids = {item.get('id') for item in categories}
+    visible_brand_ids = {item.get('id') for item in brands}
+    visible_subcategory_ids = {item.get('id') for item in subcategories if item.get('category_id') in visible_category_ids}
+
+    urls: Dict[str, Tuple[Optional[str], str]] = {
+        public_url('/'): (None, '1.0'),
+        public_url('/products'): (None, '0.9'),
+        public_url('/categories'): (None, '0.8'),
+        public_url('/brands'): (None, '0.8'),
+        public_url('/about'): (None, '0.6'),
+        public_url('/contact'): (None, '0.6'),
+    }
+
+    for category in categories:
+        loc = public_url('/products', {'category': category['id']})
+        urls[loc] = (category.get('updated_at') or category.get('created_at'), '0.8')
+
+    for subcategory in subcategories:
+        if subcategory.get('category_id') not in visible_category_ids:
+            continue
+        loc = public_url('/products', {'subcategory': subcategory['id']})
+        urls[loc] = (subcategory.get('updated_at') or subcategory.get('created_at'), '0.7')
+
+    for brand in brands:
+        loc = public_url('/products', {'brand': brand['id']})
+        urls[loc] = (brand.get('updated_at') or brand.get('created_at'), '0.7')
+
+    for product in products:
+        category_ok = not product.get('category_id') or product.get('category_id') in visible_category_ids
+        subcategory_ok = not product.get('subcategory_id') or product.get('subcategory_id') in visible_subcategory_ids
+        brand_ok = not product.get('brand_id') or product.get('brand_id') in visible_brand_ids
+        if not (category_ok and subcategory_ok and brand_ok):
+            continue
+        loc = public_url(f"/product/{product['id']}")
+        urls[loc] = (product.get('updated_at') or product.get('created_at'), '0.9')
+
+    body = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    body.extend(xml_url(loc, lastmod, priority) for loc, (lastmod, priority) in sorted(urls.items()))
+    body.append('</urlset>')
+    return Response(content='\n'.join(body), media_type='application/xml')
 
 
 @api.get('/categories')
 async def list_categories():
-    return await db.categories.find({'visible': True}, {'_id': 0}).sort('order', 1).to_list(500)
+    return mongo_safe(await db.categories.find({'visible': True}, {'_id': 0}).sort('order', 1).to_list(500))
 
 
 @api.get('/admin/categories')
 async def admin_list_categories(_=Depends(require_admin)):
-    return await db.categories.find({}, {'_id': 0}).sort('order', 1).to_list(500)
+    return mongo_safe(await db.categories.find({}, {'_id': 0}).sort('order', 1).to_list(500))
 
 
 @api.post('/admin/categories')
@@ -717,7 +808,7 @@ async def create_category(body: CategoryIn, _=Depends(require_admin)):
     doc['slug'] = doc.get('slug') or slugify(doc['name'])
     doc['created_at'] = now_iso()
     await db.categories.insert_one(doc)
-    return doc
+    return mongo_doc(doc)
 
 
 @api.put('/admin/categories/{cid}')
@@ -728,7 +819,7 @@ async def update_category(cid: str, body: CategoryIn, _=Depends(require_admin)):
     result = await db.categories.update_one({'id': cid}, {'$set': data})
     if not update_touched(result) and not await db.categories.find_one({'id': cid}):
         raise HTTPException(404, 'Category not found')
-    return await db.categories.find_one({'id': cid}, {'_id': 0})
+    return mongo_doc(await db.categories.find_one({'id': cid}, {'_id': 0}))
 
 
 @api.delete('/admin/categories/{cid}')
@@ -742,12 +833,12 @@ async def list_subcategories(category: Optional[str] = None):
     query: Dict[str, Any] = {'visible': True}
     if category:
         query['category_id'] = category
-    return await db.subcategories.find(query, {'_id': 0}).sort('order', 1).to_list(500)
+    return mongo_safe(await db.subcategories.find(query, {'_id': 0}).sort('order', 1).to_list(500))
 
 
 @api.get('/admin/subcategories')
 async def admin_list_subcategories(_=Depends(require_admin)):
-    return await db.subcategories.find({}, {'_id': 0}).sort('order', 1).to_list(500)
+    return mongo_safe(await db.subcategories.find({}, {'_id': 0}).sort('order', 1).to_list(500))
 
 
 @api.post('/admin/subcategories')
@@ -759,7 +850,7 @@ async def create_subcategory(body: SubcategoryIn, _=Depends(require_admin)):
     doc['slug'] = doc.get('slug') or slugify(doc['name'])
     doc['created_at'] = now_iso()
     await db.subcategories.insert_one(doc)
-    return doc
+    return mongo_doc(doc)
 
 
 @api.put('/admin/subcategories/{sid}')
@@ -772,7 +863,7 @@ async def update_subcategory(sid: str, body: SubcategoryIn, _=Depends(require_ad
     result = await db.subcategories.update_one({'id': sid}, {'$set': data})
     if not update_touched(result) and not await db.subcategories.find_one({'id': sid}):
         raise HTTPException(404, 'Subcategory not found')
-    return await db.subcategories.find_one({'id': sid}, {'_id': 0})
+    return mongo_doc(await db.subcategories.find_one({'id': sid}, {'_id': 0}))
 
 
 @api.delete('/admin/subcategories/{sid}')
@@ -783,12 +874,12 @@ async def delete_subcategory(sid: str, _=Depends(require_admin)):
 
 @api.get('/brands')
 async def list_brands():
-    return await db.brands.find({'visible': True}, {'_id': 0}).to_list(500)
+    return mongo_safe(await db.brands.find({'visible': True}, {'_id': 0}).to_list(500))
 
 
 @api.get('/admin/brands')
 async def admin_list_brands(_=Depends(require_admin)):
-    return await db.brands.find({}, {'_id': 0}).to_list(500)
+    return mongo_safe(await db.brands.find({}, {'_id': 0}).to_list(500))
 
 
 @api.post('/admin/brands')
@@ -798,7 +889,7 @@ async def create_brand(body: BrandIn, _=Depends(require_admin)):
     doc['slug'] = doc.get('slug') or slugify(doc['name'])
     doc['created_at'] = now_iso()
     await db.brands.insert_one(doc)
-    return doc
+    return mongo_doc(doc)
 
 
 @api.put('/admin/brands/{bid}')
@@ -809,7 +900,7 @@ async def update_brand(bid: str, body: BrandIn, _=Depends(require_admin)):
     result = await db.brands.update_one({'id': bid}, {'$set': data})
     if not update_touched(result) and not await db.brands.find_one({'id': bid}):
         raise HTTPException(404, 'Brand not found')
-    return await db.brands.find_one({'id': bid}, {'_id': 0})
+    return mongo_doc(await db.brands.find_one({'id': bid}, {'_id': 0}))
 
 
 @api.delete('/admin/brands/{bid}')
@@ -819,12 +910,12 @@ async def delete_brand(bid: str, _=Depends(require_admin)):
 
 
 async def hydrate_product(p: Dict[str, Any]) -> Dict[str, Any]:
-    p.pop('_id', None)
+    p = mongo_doc(p) or {}
     normalize_badges(p)
     p['brand'] = await db.brands.find_one({'id': p.get('brand_id')}, {'_id': 0})
     p['category'] = await db.categories.find_one({'id': p.get('category_id')}, {'_id': 0})
     p['subcategory'] = await db.subcategories.find_one({'id': p.get('subcategory_id')}, {'_id': 0}) if p.get('subcategory_id') else None
-    return p
+    return mongo_safe(p)
 
 
 @api.get('/products')
@@ -871,7 +962,7 @@ async def list_products(
         if correction:
             response.headers['X-Search-Correction'] = correction
         items = items[:limit]
-    return items
+    return mongo_safe(items)
 
 
 @api.get('/search/suggestions')
@@ -929,7 +1020,7 @@ async def get_product(pid: str):
     p = await db.products.find_one({'id': pid}, {'_id': 0})
     if not p:
         raise HTTPException(404, 'Product not found')
-    return await hydrate_product(p)
+    return mongo_safe(await hydrate_product(p))
 
 
 @api.get('/admin/products')
@@ -943,7 +1034,7 @@ async def admin_list_products(_=Depends(require_admin)):
         p['brand'] = brands.get(p.get('brand_id'))
         p['category'] = cats.get(p.get('category_id'))
         p['subcategory'] = subcats.get(p.get('subcategory_id'))
-    return items
+    return mongo_safe(items)
 
 
 @api.post('/admin/products')
@@ -952,7 +1043,7 @@ async def create_product(body: ProductIn, _=Depends(require_admin)):
     doc['id'] = new_id()
     doc['created_at'] = now_iso()
     await db.products.insert_one(doc)
-    return doc
+    return mongo_doc(doc)
 
 
 @api.put('/admin/products/{pid}')
@@ -963,7 +1054,7 @@ async def update_product(pid: str, body: ProductIn, _=Depends(require_admin)):
     if not update_touched(result) and not await db.products.find_one({'id': pid}):
         raise HTTPException(404, 'Product not found')
     updated = await db.products.find_one({'id': pid}, {'_id': 0})
-    return normalize_badges(updated) if updated else None
+    return mongo_doc(normalize_badges(updated)) if updated else None
 
 
 @api.delete('/admin/products/{pid}')
@@ -977,7 +1068,7 @@ async def get_cart(user=Depends(require_user)):
     items = await db.cart.find({'user_id': user['id']}, {'_id': 0}).to_list(200)
     for it in items:
         it['product'] = await db.products.find_one({'id': it['product_id']}, {'_id': 0})
-    return items
+    return mongo_safe(items)
 
 
 @api.post('/cart/add')
@@ -1052,17 +1143,17 @@ async def create_order(body: CheckoutIn, user=Depends(require_user)):
     for it in items:
         await db.products.update_one({'id': it['product_id']}, {'$inc': {'stock': -it['quantity']}})
     await db.cart.delete_many({'user_id': user['id']})
-    return order
+    return mongo_doc(order)
 
 
 @api.get('/orders/me')
 async def my_orders(user=Depends(require_user)):
-    return await db.orders.find({'user_id': user['id']}, {'_id': 0}).sort('created_at', -1).to_list(200)
+    return mongo_safe(await db.orders.find({'user_id': user['id']}, {'_id': 0}).sort('created_at', -1).to_list(200))
 
 
 @api.get('/admin/orders')
 async def admin_orders(_=Depends(require_admin)):
-    return await db.orders.find({}, {'_id': 0}).sort('created_at', -1).to_list(500)
+    return mongo_safe(await db.orders.find({}, {'_id': 0}).sort('created_at', -1).to_list(500))
 
 
 @api.get('/admin/orders/{oid}')
@@ -1075,19 +1166,19 @@ async def admin_order_detail(oid: str, _=Depends(require_admin)):
         raise HTTPException(status_code=404, detail='Order not found')
     customer = await db.users.find_one({'id': order.get('user_id')})
     order['customer'] = strip_doc(customer) if customer else None
-    return order
+    return mongo_doc(order)
 
 
 @api.put('/admin/orders/{oid}')
 async def update_order_status(oid: str, status: str = Query(...), _=Depends(require_admin)):
     await db.orders.update_one({'id': oid}, {'$set': {'status': status}})
-    return await db.orders.find_one({'id': oid}, {'_id': 0})
+    return mongo_doc(await db.orders.find_one({'id': oid}, {'_id': 0}))
 
 
 @api.get('/admin/content')
 async def admin_get_content(_=Depends(require_admin)):
     doc = await db.site_content.find_one({'id': 'site-content'}, {'_id': 0})
-    return merge_site_content(doc)
+    return mongo_safe(merge_site_content(doc))
 
 
 @api.put('/admin/content')
@@ -1101,12 +1192,12 @@ async def admin_update_content(body: SiteContentIn, _=Depends(require_admin)):
     else:
         data['created_at'] = now_iso()
         await db.site_content.insert_one(data)
-    return data
+    return mongo_safe(data)
 
 
 @api.get('/admin/media')
 async def admin_list_media(_=Depends(require_admin)):
-    return await db.media.find({}, {'_id': 0}).sort('created_at', -1).to_list(1000)
+    return mongo_safe(await db.media.find({}, {'_id': 0}).sort('created_at', -1).to_list(1000))
 
 
 if HAS_MULTIPART:
@@ -1142,7 +1233,7 @@ if HAS_MULTIPART:
             'created_at': now_iso(),
         }
         await db.media.insert_one(doc)
-        return doc
+        return mongo_doc(doc)
 else:
     @api.post('/admin/uploads')
     async def admin_upload_media_missing_dependency(_=Depends(require_admin)):
@@ -1163,7 +1254,7 @@ async def admin_delete_upload(filename: str, _=Depends(require_admin)):
 
 @api.get('/comparisons')
 async def list_comparisons():
-    return await db.comparisons.find({}, {'_id': 0}).to_list(200)
+    return mongo_safe(await db.comparisons.find({}, {'_id': 0}).to_list(200))
 
 
 @api.get('/comparisons/by-product/{pid}')
@@ -1176,7 +1267,7 @@ async def comparisons_for_product(pid: str):
             if p:
                 products.append(await hydrate_product(p))
         comp['products'] = products
-    return items
+    return mongo_safe(items)
 
 
 @api.post('/admin/comparisons')
@@ -1185,13 +1276,13 @@ async def create_comparison(body: ComparisonIn, _=Depends(require_admin)):
     doc['id'] = new_id()
     doc['created_at'] = now_iso()
     await db.comparisons.insert_one(doc)
-    return doc
+    return mongo_doc(doc)
 
 
 @api.put('/admin/comparisons/{cid}')
 async def update_comparison(cid: str, body: ComparisonIn, _=Depends(require_admin)):
     await db.comparisons.update_one({'id': cid}, {'$set': body.model_dump()})
-    return await db.comparisons.find_one({'id': cid}, {'_id': 0})
+    return mongo_doc(await db.comparisons.find_one({'id': cid}, {'_id': 0}))
 
 
 @api.delete('/admin/comparisons/{cid}')

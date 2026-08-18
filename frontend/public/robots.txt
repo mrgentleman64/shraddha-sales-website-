@@ -1,3 +1,11 @@
 User-agent: *
 Allow: /
-Sitemap: https://shradhasales.vercel.app/sitemap.xml
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /profile
+Disallow: /cart
+Disallow: /checkout
+Disallow: /orders
+
+Sitemap: https://shradhasales.vercel.app/api/sitemap.xml

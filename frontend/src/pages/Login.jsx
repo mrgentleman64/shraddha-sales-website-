@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input.jsx';
 import { Label } from '../components/ui/label.jsx';
 import { fmtError } from '../lib/api.js';
 import { toast } from 'sonner';
+import SEO from '../components/SEO.jsx';
 
 export default function Login() {
   const { login } = useAuth();
@@ -32,6 +33,7 @@ export default function Login() {
 
   return (
     <div className="page-shell container mx-auto px-4 py-16">
+      <SEO title="Login" description="Sign in to your Shraddha Sales account." robots="noindex, follow" canonicalPath="/login" />
       <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] items-center">
         <div className="space-y-6">
           <p className="section-eyebrow">Account</p>

@@ -5,7 +5,6 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 import { useCart } from '../contexts/CartContext.jsx';
 import { api } from '../lib/api.js';
 import { applySiteContent, mergeContent } from '../lib/content.js';
-import SEO, { organizationSchema } from './SEO.jsx';
 
 const navItems = [
   { label: 'Home', path: '/' },
@@ -74,7 +73,6 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen overflow-x-hidden text-slate-900">
-      <SEO schema={organizationSchema()} />
       <div className="bg-slate-950 text-[11px] text-slate-200">
         <div className="container mx-auto px-4 py-2 flex flex-col sm:flex-row justify-between gap-3">
           <span>{content.website_settings.announcement}</span>

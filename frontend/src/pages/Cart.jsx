@@ -18,7 +18,7 @@ export default function Cart() {
   if (!user) {
     return (
       <div className="page-shell container mx-auto px-4 py-16 text-center">
-        <SEO title="Cart" description="Review your shradhasales cart and continue shopping." />
+        <SEO title="Cart" description="Review your Shraddha Sales cart and continue shopping." robots="noindex, follow" canonicalPath="/cart" />
         <h1 className="text-3xl font-bold text-slate-900">Your cart is waiting</h1>
         <p className="mt-3 text-slate-500">Please login to view your cart.</p>
         <Link to="/login" className="interactive-lift mt-6 inline-flex rounded-2xl bg-navy px-6 py-3 font-semibold text-white shadow-[0_12px_28px_rgba(30,58,138,0.22)]">Login</Link>
@@ -29,7 +29,7 @@ export default function Cart() {
   if (items.length === 0) {
     return (
       <div className="page-shell container mx-auto px-4 py-16 text-center">
-        <SEO title="Cart" description="Your shradhasales cart is empty. Browse products to continue." />
+        <SEO title="Cart" description="Your Shraddha Sales cart is empty. Browse products to continue." robots="noindex, follow" canonicalPath="/cart" />
         <h1 className="text-3xl font-bold text-slate-900">Your cart is empty</h1>
         <p className="mt-3 text-slate-500">Add products to continue.</p>
         <Link to="/products" className="interactive-lift mt-6 inline-flex rounded-2xl bg-navy px-6 py-3 font-semibold text-white shadow-[0_12px_28px_rgba(30,58,138,0.22)]">Browse products</Link>
@@ -39,7 +39,7 @@ export default function Cart() {
 
   return (
     <div className="page-shell container mx-auto px-4 py-10">
-      <SEO title="Shopping Cart" description="Review selected appliances in your shradhasales shopping cart." />
+      <SEO title="Shopping Cart" description="Review selected appliances in your Shraddha Sales shopping cart." robots="noindex, follow" canonicalPath="/cart" />
       <h1 className="text-3xl font-bold text-slate-900">Shopping Cart</h1>
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div className="space-y-4">

@@ -34,6 +34,7 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 import { Button } from '../components/ui/button.jsx';
 import { Input } from '../components/ui/input.jsx';
 import { Label } from '../components/ui/label.jsx';
+import SEO from '../components/SEO.jsx';
 
 const tabs = [
   { key: 'overview', label: 'Overview', icon: BarChart3 },
@@ -614,6 +615,7 @@ export default function Admin() {
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
+        <SEO title="Admin" description="Shraddha Sales admin dashboard." robots="noindex, follow" canonicalPath="/admin" />
         <h1 className="text-3xl font-bold text-slate-900">Admin access required</h1>
         <p className="mt-3 text-slate-500">Login with an admin account to view the dashboard.</p>
         <Button onClick={() => navigate('/login')} className="mt-6">Login</Button>
@@ -623,6 +625,7 @@ export default function Admin() {
 
   return (
     <div className="page-shell container mx-auto px-4 py-10">
+      <SEO title="Admin Dashboard" description="Shraddha Sales admin dashboard." robots="noindex, follow" canonicalPath="/admin" />
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Admin dashboard</h1>

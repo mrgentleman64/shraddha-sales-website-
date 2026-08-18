@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 import { api, inr } from '../lib/api.js';
 import { Button } from '../components/ui/button.jsx';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs.jsx';
+import SEO from '../components/SEO.jsx';
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -21,6 +22,7 @@ export default function Profile() {
 
   return (
     <div className="page-shell container mx-auto px-4 py-10">
+      <SEO title="Profile" description="Manage your Shraddha Sales account." robots="noindex, follow" canonicalPath="/profile" />
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="section-eyebrow">Profile</p>

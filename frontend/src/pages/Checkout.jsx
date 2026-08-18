@@ -55,7 +55,7 @@ export default function Checkout() {
 
   return (
     <div className="page-shell container mx-auto px-4 py-10">
-      <SEO title="Checkout" description="Complete your shradhasales appliance order with secure checkout." />
+      <SEO title="Checkout" description="Complete your Shraddha Sales appliance order with secure checkout." robots="noindex, follow" canonicalPath="/checkout" />
       <h1 className="text-3xl font-bold text-slate-900">Checkout</h1>
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
         <form onSubmit={handleSubmit} className="section-panel space-y-6 p-8">

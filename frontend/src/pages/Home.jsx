@@ -5,7 +5,7 @@ import { api } from '../lib/api.js';
 import { activeItems, fallbackContent, firstActive, mergeContent } from '../lib/content.js';
 import ProductCard from '../components/ProductCard.jsx';
 import LazyImage, { optimizedImageUrl } from '../components/ui/LazyImage.jsx';
-import SEO, { organizationSchema } from '../components/SEO.jsx';
+import SEO, { localBusinessSchema, organizationSchema } from '../components/SEO.jsx';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -53,7 +53,12 @@ export default function Home() {
 
   return (
     <div className="page-shell">
-      <SEO title="Home" description="Shop trusted commercial and home appliances from shradhasales." schema={organizationSchema()} />
+      <SEO
+        title="Commercial Refrigeration, Water Coolers & Bakery Equipment"
+        description="Shop commercial refrigerators, deep freezers, water coolers, air conditioners, bakery equipment, and trusted appliances from Shraddha Sales."
+        canonicalPath="/"
+        schema={[organizationSchema(content), localBusinessSchema(content)]}
+      />
       <section className="container mx-auto px-4 pt-8 sm:pt-12">
         <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-end">
           <div className="relative min-h-[360px] overflow-hidden rounded-[2rem] bg-slate-950 p-10 text-white shadow-lift">

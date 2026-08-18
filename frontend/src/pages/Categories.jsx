@@ -13,7 +13,25 @@ export default function Categories() {
 
   return (
     <div className="page-shell container mx-auto px-4 py-10">
-      <SEO title="Categories" description="Browse appliance categories at shradhasales." schema={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Categories', path: '/categories' }])} />
+      <SEO
+        title="Commercial Appliance Categories"
+        description="Browse commercial refrigeration, deep freezers, water coolers, air conditioners, visi coolers, bakery equipment, and appliance categories at Shraddha Sales."
+        canonicalPath="/categories"
+        schema={[
+          breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Categories', path: '/categories' }]),
+          {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Commercial Appliance Categories',
+            hasPart: categories.map((category) => ({
+              '@type': 'WebPage',
+              name: category.name,
+              description: category.description,
+              url: `https://shradhasales.vercel.app/products?category=${category.id}`,
+            })),
+          },
+        ]}
+      />
       <div className="mb-8">
         <p className="section-eyebrow">Shop by need</p>
         <h1 className="section-title mt-2">Categories</h1>

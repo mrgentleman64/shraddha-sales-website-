@@ -11,7 +11,12 @@ const promises = [
 export default function About() {
   return (
     <div className="page-shell container mx-auto px-4 py-14">
-      <SEO title="About" description="Learn about shradhasales, a trusted store for premium commercial appliances." schema={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'About', path: '/about' }])} />
+      <SEO
+        title="About Shraddha Sales"
+        description="Learn about Shraddha Sales, a trusted supplier for commercial refrigeration, cooling, bakery equipment, and appliance solutions."
+        canonicalPath="/about"
+        schema={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'About', path: '/about' }])}
+      />
       <div className="grid items-start gap-10 lg:grid-cols-[0.95fr_0.8fr]">
         <div>
           <p className="section-eyebrow">Our promise</p>

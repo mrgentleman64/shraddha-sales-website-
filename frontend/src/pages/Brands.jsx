@@ -12,7 +12,25 @@ export default function Brands() {
 
   return (
     <div className="page-shell container mx-auto px-4 py-10">
-      <SEO title="Brands" description="Explore trusted appliance brands available at shradhasales." schema={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Brands', path: '/brands' }])} />
+      <SEO
+        title="Trusted Appliance Brands"
+        description="Explore trusted refrigerator, water cooler, air conditioner, freezer, and commercial appliance brands available at Shraddha Sales."
+        canonicalPath="/brands"
+        schema={[
+          breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Brands', path: '/brands' }]),
+          {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Trusted Appliance Brands',
+            hasPart: brands.map((brand) => ({
+              '@type': 'Brand',
+              name: brand.name,
+              logo: brand.logo,
+              url: `https://shradhasales.vercel.app/products?brand=${brand.id}`,
+            })),
+          },
+        ]}
+      />
       <div className="mb-8">
         <p className="section-eyebrow">Authorized partners</p>
         <h1 className="section-title mt-2">Brands</h1>

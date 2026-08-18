@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input.jsx';
 import { Label } from '../components/ui/label.jsx';
 import { fmtError } from '../lib/api.js';
 import { toast } from 'sonner';
+import SEO from '../components/SEO.jsx';
 
 export default function Register() {
   const { register } = useAuth();
@@ -31,6 +32,7 @@ export default function Register() {
 
   return (
     <div className="page-shell container mx-auto px-4 py-16">
+      <SEO title="Register" description="Create a Shraddha Sales account." robots="noindex, follow" canonicalPath="/register" />
       <div className="section-panel mx-auto max-w-lg p-10">
         <p className="section-eyebrow">Account</p>
         <h1 className="section-title mt-2">Create account</h1>

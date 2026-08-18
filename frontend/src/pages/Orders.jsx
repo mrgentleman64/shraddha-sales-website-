@@ -4,6 +4,7 @@ import { api, inr } from '../lib/api.js';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button.jsx';
 import { ShieldCheck, ShoppingBag } from 'lucide-react';
+import SEO from '../components/SEO.jsx';
 
 export default function Orders() {
   const { user } = useAuth();
@@ -22,6 +23,7 @@ export default function Orders() {
   if (!user) {
     return (
       <div className="page-shell container mx-auto px-4 py-16 text-center">
+        <SEO title="Orders" description="View your Shraddha Sales orders." robots="noindex, follow" canonicalPath="/orders" />
         <h1 className="text-3xl font-bold text-slate-900">Please login to view orders</h1>
         <p className="mt-3 text-slate-500">Your order history and admin order list appear here.</p>
         <Button onClick={() => navigate('/login')} className="mt-6">Login</Button>
@@ -31,6 +33,7 @@ export default function Orders() {
 
   return (
     <div className="page-shell container mx-auto px-4 py-10">
+      <SEO title={user.role === 'admin' ? 'Admin Orders' : 'My Orders'} description="View Shraddha Sales order history." robots="noindex, follow" canonicalPath="/orders" />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="section-eyebrow">{user.role === 'admin' ? 'Operations' : 'Purchases'}</p>

@@ -2,7 +2,7 @@
 import { Clock, Mail, MapPin, Phone } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { mergeContent } from '../lib/content.js';
-import SEO, { breadcrumbSchema } from '../components/SEO.jsx';
+import SEO, { breadcrumbSchema, localBusinessSchema } from '../components/SEO.jsx';
 
 export default function Contact() {
   const [siteContent, setSiteContent] = useState(null);
@@ -15,7 +15,15 @@ export default function Contact() {
 
   return (
     <div className="page-shell container mx-auto px-4 py-14">
-      <SEO title="Contact" description="Contact shradhasales for product questions, order support, and commercial appliance guidance." schema={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Contact', path: '/contact' }])} />
+      <SEO
+        title="Contact Shraddha Sales"
+        description="Contact Shraddha Sales for product questions, order support, commercial refrigeration, water coolers, and appliance guidance."
+        canonicalPath="/contact"
+        schema={[
+          breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Contact', path: '/contact' }]),
+          localBusinessSchema(content),
+        ]}
+      />
       <div className="grid items-start gap-10 lg:grid-cols-[0.95fr_0.8fr]">
         <div>
           <p className="section-eyebrow">Support</p>
